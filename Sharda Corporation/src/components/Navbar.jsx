@@ -1,11 +1,19 @@
-
+import { NavLink } from "react-router-dom";
 import React, { useState } from "react";
 
 const Navbar = () => {
 
    const [activeLink, setActiveLink] = useState("Home"); // default active page
 
-  const links = ["Home", "About Us", "CSR", "Products","Catalogue","Gallery","Contact Us"];
+  const links = [
+    { name: "Home", path: "/" },
+    { name: "About Us", path: "/about" },
+    { name: "CSR", path: "/csr" },
+    { name: "Products", path: "/products" },
+    { name: "Catalogue", path: "/catalogue" },
+    { name: "Gallery", path: "/gallery" },
+    { name: "Contact Us", path: "/contact" }
+  ];
 
   return (
     <nav className="bg-[#380f0e] text-white shadow-md h-20">
@@ -15,20 +23,23 @@ const Navbar = () => {
 
         {/* Navigation Links */}
          <ul className="flex space-x-6">
-          {links.map((link) => (
-            <li
-              key={link}
-              className={`relative cursor-pointer pb-1 transition duration-300 
-                ${activeLink === link ? "text-yellow-400" : "hover:text-yellow-400"}`}
-              onClick={() => setActiveLink(link)}
-            >
-              {link}
+           {links.map((link) => (
+            <li key={link.name} className="relative cursor-pointer pb-1 transition duration-300 text-lg">
+              <NavLink
+                to={link.path}
+                className={({ isActive }) =>
+                  `transition duration-300 ${isActive ? "text-yellow-400" : "hover:text-yellow-400"}`
+                }
+                onClick={() => setActiveLink(link.name)}
+              >
+                {link.name}
 
               {/* White slider underline */}
               <span
                 className={`absolute left-0 bottom-0 h-[2px] bg-white transition-all duration-300
-                  ${activeLink === link ? "w-full" : "w-0 group-hover:w-full"}`}
+                  ${activeLink === link.name ? "w-full" : "w-0 group-hover:w-full"}`}
               ></span>
+               </NavLink>
             </li>
           ))}
         </ul>
