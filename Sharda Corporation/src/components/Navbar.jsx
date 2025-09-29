@@ -1,10 +1,8 @@
-import { NavLink } from "react-router-dom";
-import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import React from "react";
 
 const Navbar = () => {
-
-   const [activeLink, setActiveLink] = useState("Home"); // default active page
-
+  const navigate = useNavigate();
   const links = [
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
@@ -12,37 +10,50 @@ const Navbar = () => {
     { name: "Products", path: "/products" },
     { name: "Catalogue", path: "/catalogue" },
     { name: "Gallery", path: "/gallery" },
-    { name: "Contact Us", path: "/contact" }
+    { name: "Contact Us", path: "/contact" },
   ];
 
   return (
     <nav className="bg-[#380f0e] text-white shadow-md h-20">
       <div className="container mx-auto flex justify-between items-center p-4">
-        {/* Logo / Brand */}
-        <h1 className="text-2xl font-bold">Sharda Corporation</h1>
+        {/* Logo */}
+        <a href="/" className="text-2xl font-bold">
+          Sharda Corporation
+        </a>
 
         {/* Navigation Links */}
-         <ul className="flex space-x-6">
-           {links.map((link) => (
-            <li key={link.name} className="relative cursor-pointer pb-1 transition duration-300 text-lg">
+        <ul className="flex space-x-6">
+          {links.map((link) => (
+            <li
+              key={link.name}
+              className="relative group cursor-pointer pb-1 transition duration-300 text-lg"
+            >
               <NavLink
                 to={link.path}
                 className={({ isActive }) =>
-                  `transition duration-300 ${isActive ? "text-yellow-400" : "hover:text-yellow-400"}`
+                  `transition duration-300 ${
+                    isActive ? "text-yellow-400" : "hover:text-yellow-400"
+                  }`
                 }
-                onClick={() => setActiveLink(link.name)}
               >
                 {link.name}
+              </NavLink>
 
-              {/* White slider underline */}
+              {/* White underline (outside NavLink now) */}
               <span
-                className={`absolute left-0 bottom-0 h-[2px] bg-white transition-all duration-300
-                  ${activeLink === link.name ? "w-full" : "w-0 group-hover:w-full"}`}
+                className="absolute left-0 bottom-0 h-[2px] bg-white w-0 group-hover:w-full transition-all duration-300"
               ></span>
-               </NavLink>
             </li>
           ))}
         </ul>
+
+        {/* Login Button */}
+        <button
+          onClick={() => navigate("/login")}
+          className="bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
+        >
+          Login
+        </button>
       </div>
     </nav>
   );

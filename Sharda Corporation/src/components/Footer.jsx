@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
         
         {/* Left - Brand */}
-        <h2 className="text-xl font-bold">Sharda Corporation</h2>
+        <a href="/" className="text-xl font-bold">Sharda Corporation</a>
 
         {/* Center - Links */}
         <ul className="flex space-x-6 my-4 md:my-0">
