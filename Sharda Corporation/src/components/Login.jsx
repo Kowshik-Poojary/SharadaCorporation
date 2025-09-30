@@ -1,9 +1,21 @@
 import React, { useState } from "react";
-
+import { useGoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
-
   const [isSignup, setIsSignup] = useState(false);
+
+  // Hook for Google login
+  const googleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const { default: jwt_decode } = await import("jwt-decode");
+      const decoded = jwt_decode(tokenResponse.credential || tokenResponse.access_token);
+      console.log("Google user:", decoded);
+      alert(`Welcome ${decoded.name}`);
+    },
+    onError: () => {
+      console.log("Google Login Failed");
+    },
+  });
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
@@ -12,7 +24,6 @@ const Login = () => {
           {isSignup ? "Sign Up" : "Login"}
         </h2>
 
-        {/* Input fields */}
         {isSignup && (
           <input
             type="text"
@@ -35,7 +46,21 @@ const Login = () => {
           {isSignup ? "Sign Up" : "Login"}
         </button>
 
-        {/* Toggle Login / Signup */}
+        {/* Dynamic Google Button */}
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => googleLogin()}
+            className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+          >
+            <img
+              src="https://developers.google.com/identity/images/g-logo.png"
+              alt="Google logo"
+              className="w-5 h-5"
+            />
+            {isSignup ? "Sign up with Google" : "Sign in with Google"}
+          </button>
+        </div>
+
         <p className="text-sm text-center mt-4">
           {isSignup ? "Already have an account?" : "Don’t have an account?"}{" "}
           <span
