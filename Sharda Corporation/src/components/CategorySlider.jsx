@@ -50,7 +50,7 @@ const CategorySlider = () => {
   };
 
   return (
-    <div className="relative w-full h-[70vh] overflow-hidden">
+    <div className="relative w-full overflow-hidden">
       {/* Slides */}
       <div
         className="flex transition-transform duration-700 ease-in-out"
@@ -59,17 +59,14 @@ const CategorySlider = () => {
         {categories.map((cat, index) => (
           <div
             key={index}
-            className="w-full flex-shrink-0 cursor-pointer relative"
+            className="w-full h-auto object-cover flex-shrink-0 cursor-pointer relative"
             onClick={() => navigate(cat.link)}
           >
             <img
               src={cat.img}
               alt={cat.name}
-              className="w-full h-[70vh] object-cover"
+              className="w-full h-auto object-cover"
             />
-            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-6 py-3 rounded-xl text-xl font-semibold">
-              {cat.name}
-            </div>
           </div>
         ))}
       </div>
