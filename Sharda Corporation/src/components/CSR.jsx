@@ -14,7 +14,7 @@ const CSRPage = () => {
   return (
     <div className="p-6 md:p-12">
       <h1 className="text-3xl md:text-4xl font-bold mb-6 text-center">
-        Our CSR Initiatives
+        Our Social Responsibilities
       </h1>
 
       {/* Image Grid */}
@@ -59,7 +59,6 @@ const CSRPage = () => {
 
       {/* Text Section */}
       <div className="mt-12 max-w-full mx-auto">
-        <h2 className="text-4xl font-semibold mb-4 text-center">Our Commitment</h2>
         <p className="text-gray-600 leading-relaxed text-2xl mb-6">
         As our company has grown and spread its operations, we have become
         socially conscious and have started to work towards the betterment of
