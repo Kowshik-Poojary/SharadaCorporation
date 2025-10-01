@@ -12,7 +12,7 @@ import Products from "./components/Products";
 import Catalogues from "./components/Catalogues";
 import Gallerys from "./components/Gallerys";
 import Contact from "./components/Contact";
-import Footer from "./components/footer";
+import Footer from "./components/Footer";
 
 function App() {
   return (
