@@ -1,8 +1,11 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import React from "react";
+import React, { useState } from "react";
+import { Menu, X } from "lucide-react"; // hamburger + close icon
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false); // mobile menu toggle
   const navigate = useNavigate();
+
   const links = [
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
@@ -21,8 +24,8 @@ const Navbar = () => {
           Sharda Corporation
         </a>
 
-        {/* Navigation Links */}
-        <ul className="flex space-x-6">
+        {/* Desktop Links */}
+        <ul className="hidden md:flex space-x-6">
           {links.map((link) => (
             <li
               key={link.name}
@@ -38,23 +41,61 @@ const Navbar = () => {
               >
                 {link.name}
               </NavLink>
-
-              {/* White underline (outside NavLink now) */}
-              <span
-                className="absolute left-0 bottom-0 h-[2px] bg-white w-0 group-hover:w-full transition-all duration-300"
-              ></span>
+              <span className="absolute left-0 bottom-0 h-[2px] bg-white w-0 group-hover:w-full transition-all duration-300"></span>
             </li>
           ))}
         </ul>
 
-        {/* Login Button */}
+        {/* Desktop Login Button */}
         <button
           onClick={() => navigate("/login")}
-          className="bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
+          className="hidden md:block bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
         >
           Login
         </button>
+
+        {/* Mobile Hamburger */}
+        <button
+          className="md:hidden text-white focus:outline-none"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-[#380f0e] px-6 pb-4">
+          <ul className="flex flex-col space-y-4">
+            {links.map((link) => (
+              <li key={link.name}>
+                <NavLink
+                  to={link.path}
+                  className={({ isActive }) =>
+                    `block transition duration-300 ${
+                      isActive ? "text-yellow-400" : "hover:text-yellow-400"
+                    }`
+                  }
+                  onClick={() => setIsOpen(false)} // close menu after click
+                >
+                  {link.name}
+                </NavLink>
+              </li>
+            ))}
+            <li>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate("/login");
+                }}
+                className="w-full bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
+              >
+                Login
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
     </nav>
   );
 };
