@@ -1,9 +1,9 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
-import { Menu, X } from "lucide-react"; // hamburger + close icon
+import { Menu, X } from "lucide-react";
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false); // mobile menu toggle
+const Navbar = ({ user, setUser }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const links = [
@@ -46,13 +46,26 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Desktop Login Button */}
-        <button
-          onClick={() => navigate("/login")}
-          className="hidden md:block bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
-        >
-          Login
-        </button>
+        {/* ✅ Desktop Login / Logout Button */}
+        {user ? (
+          <button
+            onClick={() => {
+              localStorage.removeItem("user");
+              setUser(null);
+              navigate("/");
+            }}
+            className="hidden md:block bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition"
+          >
+            Logout
+          </button>
+        ) : (
+          <button
+            onClick={() => navigate("/login")}
+            className="hidden md:block bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
+          >
+            Login
+          </button>
+        )}
 
         {/* Mobile Hamburger */}
         <button
@@ -63,7 +76,7 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* ✅ Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-[#380f0e] px-6 pb-4">
           <ul className="flex flex-col space-y-4">
@@ -76,22 +89,38 @@ const Navbar = () => {
                       isActive ? "text-yellow-400" : "hover:text-yellow-400"
                     }`
                   }
-                  onClick={() => setIsOpen(false)} // close menu after click
+                  onClick={() => setIsOpen(false)}
                 >
                   {link.name}
                 </NavLink>
               </li>
             ))}
+
+            {/* ✅ Mobile Login / Logout */}
             <li>
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  navigate("/login");
-                }}
-                className="w-full bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
-              >
-                Login
-              </button>
+              {user ? (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("user");
+                    setUser(null);
+                    setIsOpen(false);
+                    navigate("/");
+                  }}
+                  className="w-full bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-400 transition"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate("/login");
+                  }}
+                  className="w-full bg-white text-red-950 px-4 py-2 rounded-lg hover:bg-yellow-300 transition"
+                >
+                  Login
+                </button>
+              )}
             </li>
           </ul>
         </div>

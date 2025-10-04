@@ -1,17 +1,27 @@
-// src/components/Products.jsx
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
-const Products = ({ category }) => {
-  const { catName } = useParams();
-  const displayCategory = category || catName;
+const Products = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/products")
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.error(err));
+  }, []);
 
   return (
-    <div className="p-10 text-center">
-      <h1 className="text-3xl font-bold">{displayCategory} Products</h1>
-      <p className="mt-4 text-gray-700">
-        Showing all products under {displayCategory}.
-      </p>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Our Products</h1>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {products.map((p) => (
+          <div key={p._id} className="bg-white p-4 shadow rounded-lg">
+            <img src={p.imageUrl} alt={p.name} className="h-40 w-full object-cover rounded" />
+            <h2 className="mt-2 text-lg font-semibold">{p.name}</h2>
+            <p className="text-gray-500">{p.category}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
