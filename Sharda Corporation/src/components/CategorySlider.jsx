@@ -1,30 +1,173 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react"; // icon package (install with: npm install lucide-react)
-import NewArrival from "../assets/NewArrival.png"
+import NewArrival from "../assets/NewArrival.png";
+import Disposables from "../assets/Disposable.png";
+import SugarcaneBaggasse from "../assets/SugarcaneBaggasse.png";
+import RiceHusk from "../assets/RiceHusk.png";
+import Cookware from "../assets/Cookware.png";
+import KitchenTextile from "../assets/KitchenTextile.png";
+import WoodenItems from "../assets/WoodenItems.png";
+import Baskets from "../assets/Baskets.png";
+import CakeStandDisplayItems from "../assets/CakeStandsAndFruitDispensers.png";
+import ChipCones from "../assets/ChipConeHolder.png";
+import Tabletop from "../assets/Tabletop.png";
+import MiniPresentationItems from "../assets/MiniPresentationItems.png";
+import PresentationServerware from "../assets/PresentationServerware.png";
+import SaltPepperShakers from "../assets/SaltPepperShaker.png";
+import BarAccessories from "../assets/BarAccessories.png";
+import IceWineBucket from "../assets/IceWineBucket.png";
+import WineBucketHolder from "../assets/WineBucketHolder.png";
+import CocktailShaker from "../assets/CocktailShaker.png";
+import Trays from "../assets/Trays.png";
+import KitchenEquipments from "../assets/KitchenEquipments.png";
+import KitchenCutlery from "../assets/KitchenCutlery.png";
+import RangeOfBowls from "../assets/Bowls.png";
+import PreparationUtensils from "../assets/PreparationUtensils.png";
+import FoodRings from "../assets/FoodRings.png";
+import Whisks from "../assets/Whisks.png";
+import Tongs from "../assets/Tongs.png";
+import PizzaEquipments from "../assets/PizzaEquipments.png";
+
 
 const categories = [
   {
-    name: "New Arrival",
+    name: "New Arrivals",
     img: NewArrival,
-    link: "/products/NewArrival",
+    link: "/products/new-arrivals",
   },
   {
-    name: "Clothing",
-    img: "https://via.placeholder.com/1600x600?text=Clothing",
-    link: "/products/clothing",
+    name: "Disposables",
+    img: Disposables,
+    link: "/products/disposables",
   },
   {
-    name: "Furniture",
-    img: "https://via.placeholder.com/1600x600?text=Furniture",
-    link: "/products/furniture",
+    name: "Sugarcane Baggasse",
+    img: SugarcaneBaggasse,
+    link: "/products/sugarcane-baggasse",
   },
   {
-    name: "Accessories",
-    img: "https://via.placeholder.com/1600x600?text=Accessories",
-    link: "/products/accessories",
+    name: "Rice Husk",
+    img: RiceHusk,
+    link: "/products/rice-husk",
+  },
+  {
+    name: "Cookware",
+    img: Cookware,
+    link: "/products/cookware",
+  },
+  {
+    name: "Kitchen Textile",
+    img: KitchenTextile,
+    link: "/products/kitchen-textile",
+  },
+  {
+    name: "Wooden Items",
+    img: WoodenItems,
+    link: "/products/wooden-items",
+  },
+  {
+    name: "Baskets",
+    img: Baskets,
+    link: "/products/baskets",
+  },
+  {
+    name: "Cake Stand & Display Items",
+    img: CakeStandDisplayItems,
+    link: "/products/cake-stand-display-items",
+  },
+  {
+    name: "Chip Cones",
+    img: ChipCones,
+    link: "/products/chip-cones",
+  },
+  {
+    name: "Tabletop",
+    img: Tabletop,
+    link: "/products/tabletop",
+  },
+  {
+    name: "Mini Presentation Items",
+    img: MiniPresentationItems,
+    link: "/products/mini-presentation-items",
+  },
+  {
+    name: "Presentation Serverware",
+    img: PresentationServerware,
+    link: "/products/presentation-serverware",
+  },
+  {
+    name: "Salt Pepper Shakers",
+    img: SaltPepperShakers,
+    link: "/products/salt-pepper-shakers",
+  },
+  {
+    name: "Bar Accessories",
+    img: BarAccessories,
+    link: "/products/bar-accessories",
+  },
+  {
+    name: "Ice Wine Bucket",
+    img: IceWineBucket,
+    link: "/products/ice-wine-bucket",
+  },
+  {
+    name: "Wine Bucket Holder",
+    img: WineBucketHolder,
+    link: "/products/wine-bucket-holder",
+  },
+  {
+    name: "Cocktail Shaker",
+    img: CocktailShaker,
+    link: "/products/cocktail-shaker",
+  },
+  {
+    name: "Trays",
+    img: Trays,
+    link: "/products/trays",
+  },
+  {
+    name: "Kitchen Equipments",
+    img: KitchenEquipments,
+    link: "/products/kitchen-equipments",
+  },
+  {
+    name: "Kitchen Cutlery",
+    img: KitchenCutlery,
+    link: "/products/kitchen-cutlery",
+  },
+  {
+    name: "Range of Bowls",
+    img: RangeOfBowls,
+    link: "/products/range-of-bowls",
+  },
+  {
+    name: "Preparation Utensils",
+    img: PreparationUtensils,
+    link: "/products/preparation-utensils",
+  },
+  {
+    name: "Food Rings",
+    img: FoodRings,
+    link: "/products/food-rings",
+  },
+  {
+    name: "Whisks",
+    img: Whisks,
+    link: "/products/whisks",
+  },
+  {
+    name: "Tongs",
+    img: Tongs,
+    link: "/products/tongs",
+  },
+  {
+    name: "Pizza Equipments",
+    img: PizzaEquipments,
+    link: "/products/pizza-equipments",
   },
 ];
+
 
 const CategorySlider = () => {
   const [current, setCurrent] = useState(0);
