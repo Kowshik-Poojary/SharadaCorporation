@@ -1,44 +1,15 @@
 import React, { useState } from "react";
-import { useGoogleLogin } from "@react-oauth/google";
-import { useNavigate } from "react-router-dom"; // for redirect
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
 
 const Login = ({ setUser }) => {
-  const navigate = useNavigate(); // navigation hook
+  const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState(""); // inline message
+  const [message, setMessage] = useState("");
 
-  // Google login
-  const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      const { default: jwt_decode } = await import("jwt-decode");
-      const decoded = jwt_decode(tokenResponse.credential || tokenResponse.access_token);
-
-      try {
-        const res = await fetch("http://localhost:5000/api/users/google", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: decoded.name,
-            email: decoded.email,
-            picture: decoded.picture,
-          }),
-        });
-        const data = await res.json();
-
-        setUser(data); // update app state with logged-in user
-        setMessage(""); // clear messages
-        navigate("/"); // redirect to home
-      } catch (err) {
-        setMessage("Google login failed.");
-      }
-    },
-    onError: () => setMessage("Google login failed."),
-  });
-
-  // Manual signup
   const handleSignup = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/users/signup", {
@@ -46,9 +17,7 @@ const Login = ({ setUser }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-
       const data = await res.json();
-
       if (res.ok) {
         setMessage("Signup successful! You can now login.");
         setIsSignup(false);
@@ -60,7 +29,6 @@ const Login = ({ setUser }) => {
     }
   };
 
-  // Manual login
   const handleLogin = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/users/login", {
@@ -69,11 +37,9 @@ const Login = ({ setUser }) => {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-
       if (res.ok) {
-        setUser(data); // set logged-in user in app state
-        setMessage("");
-        navigate("/"); // go to home page
+        setUser(data);
+        navigate("/");
       } else {
         setMessage(data.message || "Login failed.");
       }
@@ -89,7 +55,6 @@ const Login = ({ setUser }) => {
           {isSignup ? "Sign Up" : "Login"}
         </h2>
 
-        {/* Input Fields */}
         {isSignup && (
           <input
             type="text"
@@ -114,12 +79,8 @@ const Login = ({ setUser }) => {
           className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
 
-        {/* Inline message */}
-        {message && (
-          <p className="text-center text-red-500 mb-3">{message}</p>
-        )}
+        {message && <p className="text-center text-red-500 mb-3">{message}</p>}
 
-        {/* Button to trigger login/signup */}
         <button
           onClick={isSignup ? handleSignup : handleLogin}
           className="w-full bg-yellow-500 text-black py-2 rounded-lg hover:bg-yellow-400 transition"
@@ -127,19 +88,29 @@ const Login = ({ setUser }) => {
           {isSignup ? "Sign Up" : "Login"}
         </button>
 
-        {/* Google Auth Button */}
         <div className="mt-4 flex justify-center">
-          <button
-            onClick={() => googleLogin()}
-            className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-          >
-            <img
-              src="https://developers.google.com/identity/images/g-logo.png"
-              alt="Google logo"
-              className="w-5 h-5"
-            />
-            {isSignup ? "Sign up with Google" : "Sign in with Google"}
-          </button>
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                const res = await fetch(
+                  "http://localhost:5000/api/users/google",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      credential: credentialResponse.credential,
+                    }),
+                  }
+                );
+                const data = await res.json();
+                setUser(data);
+                navigate("/");
+              } catch (err) {
+                setMessage("Google login failed.");
+              }
+            }}
+            onError={() => setMessage("Google login failed.")}
+          />
         </div>
 
         <p className="text-sm text-center mt-4">
@@ -147,7 +118,7 @@ const Login = ({ setUser }) => {
           <span
             onClick={() => {
               setIsSignup(!isSignup);
-              setMessage(""); // clear previous messages
+              setMessage("");
             }}
             className="text-yellow-600 font-semibold cursor-pointer"
           >
