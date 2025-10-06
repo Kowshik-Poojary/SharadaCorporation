@@ -11,7 +11,7 @@ import WoodenItems from "../assets/WoodenItems.png";
 import Baskets from "../assets/Baskets.png";
 import CakeStandDisplayItems from "../assets/CakeStandsAndFruitDispensers.png";
 import ChipCones from "../assets/ChipConeHolder.png";
-import Tabletop from "../assets/Tabletop.png";
+import Tabletop from "../assets/TableTop.png";
 import MiniPresentationItems from "../assets/MiniPresentationItems.png";
 import PresentationServerware from "../assets/PresentationServerware.png";
 import SaltPepperShakers from "../assets/SaltPepperShaker.png";
