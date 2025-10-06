@@ -36,7 +36,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/csr" element={<CSR />} />
             <Route path="/products" element={<Products />} />
-            <Route path="/catalogue" element={<Catalogues />} />
+            <Route path="/catalogue" element={<Catalogues user={user}/>} />
             <Route path="/gallery" element={<Gallerys />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login setUser={setUser} />} />

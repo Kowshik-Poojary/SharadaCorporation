@@ -10,6 +10,9 @@ const Login = ({ setUser, loggedOut }) => {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [forgotPassword, setForgotPassword] = useState(false);
+const [resetCode, setResetCode] = useState("");
+const [newPassword, setNewPassword] = useState("");
 
   // Show logout success message if redirected after logout
   useEffect(() => {
@@ -18,6 +21,47 @@ const Login = ({ setUser, loggedOut }) => {
       setTimeout(() => setSuccessMessage(""), 3000);
     }
   }, [loggedOut]);
+
+  const handleForgotPassword = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/users/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setSuccessMessage(data.message);
+      setForgotPassword(true); // show reset code input
+    } else {
+      setMessage(data.message || "Error sending code");
+    }
+  } catch {
+    setMessage("Error sending code");
+  }
+};
+
+// ---------- RESET PASSWORD ----------
+const handleResetPassword = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/users/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code: resetCode, newPassword }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setSuccessMessage(data.message);
+      setForgotPassword(false);
+      setResetCode("");
+      setNewPassword("");
+    } else {
+      setMessage(data.message || "Reset failed");
+    }
+  } catch {
+    setMessage("Reset failed");
+  }
+};
 
   // ---------- SIGNUP ----------
   const handleSignup = async () => {
@@ -109,29 +153,32 @@ const Login = ({ setUser, loggedOut }) => {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100 relative">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-96">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          {isSignup ? "Sign Up" : "Login"}
-        </h2>
+  <div className="flex justify-center items-center h-screen bg-gray-100 relative">
+    <div className="bg-white p-8 rounded-2xl shadow-lg w-96">
+      <h2 className="text-2xl font-bold text-center mb-6">
+        {isSignup ? "Sign Up" : forgotPassword ? "Reset Password" : "Login"}
+      </h2>
 
-        {/* Input Fields */}
-        {isSignup && (
-          <input
-            type="text"
-            placeholder="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-        )}
+      {/* Input Fields */}
+      {isSignup && (
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
+      )}
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+      />
+
+      {!forgotPassword && (
         <input
           type="password"
           placeholder="Password"
@@ -139,18 +186,59 @@ const Login = ({ setUser, loggedOut }) => {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
+      )}
 
-        {/* Error message */}
-        {message && <p className="text-center text-red-500 mb-3">{message}</p>}
+      {/* Forgot Password Link */}
+      {!isSignup && !forgotPassword && (
+        <p
+          className="text-sm text-right text-yellow-600 cursor-pointer mb-3"
+          onClick={handleForgotPassword}
+        >
+          Forgot Password?
+        </p>
+      )}
 
+      {/* Reset Password Fields */}
+      {forgotPassword && (
+        <>
+          <input
+            type="text"
+            placeholder="Enter verification code"
+            value={resetCode}
+            onChange={(e) => setResetCode(e.target.value)}
+            className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
+          <input
+            type="password"
+            placeholder="Enter new password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
+          <button
+            onClick={handleResetPassword}
+            className="w-full bg-yellow-500 text-black py-2 rounded-lg hover:bg-yellow-400 transition mb-3"
+          >
+            Reset Password
+          </button>
+        </>
+      )}
+
+      {/* Error message */}
+      {message && <p className="text-center text-red-500 mb-3">{message}</p>}
+
+      {/* Login/Signup button */}
+      {!forgotPassword && (
         <button
           onClick={isSignup ? handleSignup : handleLogin}
           className="w-full bg-yellow-500 text-black py-2 rounded-lg hover:bg-yellow-400 transition"
         >
           {isSignup ? "Sign Up" : "Login"}
         </button>
+      )}
 
-        {/* Google buttons */}
+      {/* Google buttons */}
+      {!forgotPassword && (
         <div className="mt-6 flex flex-col items-center space-y-3">
           {isSignup ? (
             <>
@@ -174,8 +262,10 @@ const Login = ({ setUser, loggedOut }) => {
             </>
           )}
         </div>
+      )}
 
-        {/* Toggle login/signup */}
+      {/* Toggle login/signup */}
+      {!forgotPassword && (
         <p className="text-sm text-center mt-4">
           {isSignup ? "Already have an account?" : "Don’t have an account?"}{" "}
           <span
@@ -188,16 +278,18 @@ const Login = ({ setUser, loggedOut }) => {
             {isSignup ? "Login" : "Sign Up"}
           </span>
         </p>
-      </div>
-
-      {/* Footer Success Message */}
-      {successMessage && (
-        <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-2 rounded-lg shadow-lg z-50">
-          {successMessage}
-        </div>
       )}
     </div>
-  );
+
+    {/* Footer Success Message */}
+    {successMessage && (
+      <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-2 rounded-lg shadow-lg z-50">
+        {successMessage}
+      </div>
+    )}
+  </div>
+);
+
 };
 
 export default Login;

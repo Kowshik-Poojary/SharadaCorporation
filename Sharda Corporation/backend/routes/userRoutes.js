@@ -173,4 +173,38 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+// POST /api/users/forgot-password
+router.post("/api/users/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6-digit code
+  user.resetCode = verificationCode;
+  user.resetCodeExpiry = Date.now() + 10 * 60 * 1000; // expires in 10 min
+  await user.save();
+
+  // Send email
+  await sendEmail(email, "Password Reset Code", `Your code is ${verificationCode}`);
+
+  res.json({ message: "Verification code sent to your email" });
+});
+
+// POST /api/users/reset-password
+router.post("/api/users/reset-password", async (req, res) => {
+  const { email, code, newPassword } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+  if (user.resetCode !== code || Date.now() > user.resetCodeExpiry)
+    return res.status(400).json({ message: "Invalid or expired code" });
+
+  user.password = newPassword; // hash password before saving in production
+  user.resetCode = null;
+  user.resetCodeExpiry = null;
+  await user.save();
+
+  res.json({ message: "Password reset successful" });
+});
+
+
 export default router;
