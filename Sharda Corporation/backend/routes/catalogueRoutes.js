@@ -13,12 +13,15 @@ router.post("/request", async (req, res) => {
   try {
     // Transporter setup (use your app Gmail)
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "shardacorporation334@gmail.com", // sender Gmail
-        pass: process.env.EMAIL_PASS, // App password from Google
-      },
-    });
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // use STARTTLS
+  auth: {
+    user: "shardacorporation.334@gmail.com", // ✅ your sender Gmail
+    pass: process.env.EMAIL_PASS, // ✅ 16-digit Gmail App Password
+  },
+});
+
 
     // Mail options
     const mailOptions = {
