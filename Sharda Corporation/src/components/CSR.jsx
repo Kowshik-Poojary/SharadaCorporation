@@ -2,22 +2,22 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ✅ Import all 16 CSR images from src/assets
-import CSR1 from "../assets/CSR1.JPG";
-import CSR2 from "../assets/CSR2.JPG";
-import CSR3 from "../assets/CSR3.JPG";
-import CSR4 from "../assets/CSR4.JPG";
-import CSR5 from "../assets/CSR5.JPG";
-import CSR6 from "../assets/CSR6.JPG";
-import CSR7 from "../assets/CSR7.JPG";
-import CSR8 from "../assets/CSR8.JPG";
-import CSR9 from "../assets/CSR9.JPG";
-import CSR10 from "../assets/CSR10.JPG";
-import CSR11 from "../assets/CSR11.JPG";
-import CSR12 from "../assets/CSR12.JPG";
-import CSR13 from "../assets/CSR13.jpeg";
-import CSR14 from "../assets/CSR14.jpeg";
-import CSR15 from "../assets/CSR15.jpeg";
-import CSR16 from "../assets/CSR16.jpeg";
+import CSR1 from "../assets/CSR1.jpg";
+import CSR2 from "../assets/CSR2.jpg";
+import CSR3 from "../assets/CSR3.jpg";
+import CSR4 from "../assets/CSR4.jpg";
+import CSR5 from "../assets/CSR5.jpg";
+import CSR6 from "../assets/CSR6.jpg";
+import CSR7 from "../assets/CSR7.jpg";
+import CSR8 from "../assets/CSR8.jpg";
+import CSR9 from "../assets/CSR9.jpg";
+import CSR10 from "../assets/CSR10.jpg";
+import CSR11 from "../assets/CSR11.jpg";
+import CSR12 from "../assets/CSR12.jpg";
+import CSR13 from "../assets/CSR13.jpg";
+import CSR14 from "../assets/CSR14.jpg";
+import CSR15 from "../assets/CSR15.jpg";
+import CSR16 from "../assets/CSR16.jpg";
 
 // Create array for easy mapping
 const csrImages = [
