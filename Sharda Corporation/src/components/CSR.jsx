@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const csrImages = [
-  { id: 1, src: "/assets/csr1.jpg", alt: "CSR Activity 1" },
-  { id: 2, src: "/assets/csr2.jpg", alt: "CSR Activity 2" },
-  { id: 3, src: "/assets/csr3.jpg", alt: "CSR Activity 3" },
-  { id: 4, src: "/assets/csr4.jpg", alt: "CSR Activity 4" },
+  { id: 1, src: "/assets/CSR1.jpg", alt: "CSR Activity 1" },
+  { id: 2, src: "/assets/CSR2.jpg", alt: "CSR Activity 2" },
+  { id: 3, src: "/assets/CSR3.jpg", alt: "CSR Activity 3" },
+  { id: 4, src: "/assets/CSR4.jpg", alt: "CSR Activity 4" },
 ];
 
 const CSRPage = () => {
