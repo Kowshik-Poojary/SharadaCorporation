@@ -17,7 +17,7 @@ import CSR12 from "../assets/CSR12.jpg";
 import CSR13 from "../assets/CSR13.jpg";
 import CSR14 from "../assets/CSR14.jpg";
 import CSR15 from "../assets/CSR15.jpg";
-
+import CSR16 from "../assets/CSR16.jpg";
 
 // Create array for easy mapping
 const csrImages = [
