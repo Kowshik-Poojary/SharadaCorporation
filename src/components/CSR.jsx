@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Cloudinary image URLs (replace YOUR_CLOUD_NAME)
 const csrImages = Array.from({ length: 16 }, (_, i) => ({
   id: i + 1,
   src: `https://res.cloudinary.com/dfcuvzjii/image/upload/v17280012${30 + i}/CSR${i + 1}.jpg`,
@@ -9,7 +8,21 @@ const csrImages = Array.from({ length: 16 }, (_, i) => ({
 }));
 
 const CSRPage = () => {
-  const [selectedImg, setSelectedImg] = useState(null);
+  const [selectedImgIndex, setSelectedImgIndex] = useState(null);
+
+  const handlePrev = (e) => {
+    e.stopPropagation();
+    setSelectedImgIndex(
+      selectedImgIndex === 0 ? csrImages.length - 1 : selectedImgIndex - 1
+    );
+  };
+
+  const handleNext = (e) => {
+    e.stopPropagation();
+    setSelectedImgIndex(
+      selectedImgIndex === csrImages.length - 1 ? 0 : selectedImgIndex + 1
+    );
+  };
 
   return (
     <div className="p-6 md:p-12 bg-gray-50 min-h-screen">
@@ -17,14 +30,14 @@ const CSRPage = () => {
         Our Social Responsibilities
       </h1>
 
-      {/* ✅ Image Grid */}
+      {/* Image Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {csrImages.map((img) => (
+        {csrImages.map((img, index) => (
           <motion.div
             key={img.id}
             whileHover={{ scale: 1.05 }}
             className="cursor-pointer overflow-hidden rounded-xl shadow-md hover:shadow-lg transition-shadow"
-            onClick={() => setSelectedImg(img.src)}
+            onClick={() => setSelectedImgIndex(index)}
           >
             <img
               src={img.src}
@@ -36,29 +49,43 @@ const CSRPage = () => {
         ))}
       </div>
 
-      {/* ✅ Lightbox */}
+      {/* Lightbox */}
       <AnimatePresence>
-        {selectedImg && (
+        {selectedImgIndex !== null && (
           <motion.div
             className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelectedImg(null)}
+            onClick={() => setSelectedImgIndex(null)}
           >
+            <button
+              onClick={handlePrev}
+              className="absolute left-5 text-white text-3xl font-bold z-50"
+            >
+              &#10094;
+            </button>
+
             <motion.img
-              src={selectedImg}
+              src={csrImages[selectedImgIndex].src}
               alt="CSR Zoom"
               className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl border border-white"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
             />
+
+            <button
+              onClick={handleNext}
+              className="absolute right-5 text-white text-3xl font-bold z-50"
+            >
+              &#10095;
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ✅ Text Section */}
+      {/* Text Section */}
       <div className="mt-16 max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8">
         <p className="text-gray-700 leading-relaxed text-lg md:text-xl mb-6">
           As our company has grown and spread its operations, we have become
@@ -96,7 +123,7 @@ const CSRPage = () => {
           <li>In the years 2018 & 2019, we sponsored tuition fees for 203 students.</li>
           <li>In the year 2021, we donated around 3,000 Made-in-India Covid vaccines to the general public free of cost.</li>
         </ul>
-        {/* Your text content stays the same */}
+
       </div>
     </div>
   );
