@@ -1,43 +1,12 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// ✅ Import all 16 CSR images from src/assets
-import CSR1 from "../assets/CSR1.jpg";
-import CSR2 from "../assets/CSR2.jpg";
-import CSR3 from "../assets/CSR3.jpg";
-import CSR4 from "../assets/CSR4.jpg";
-import CSR5 from "../assets/CSR5.jpg";
-import CSR6 from "../assets/CSR6.jpg";
-import CSR7 from "../assets/CSR7.jpg";
-import CSR8 from "../assets/CSR8.jpg";
-import CSR9 from "../assets/CSR9.jpg";
-import CSR10 from "../assets/CSR10.jpg";
-import CSR11 from "../assets/CSR11.jpg";
-import CSR12 from "../assets/CSR12.jpg";
-import CSR13 from "../assets/CSR13.jpg";
-import CSR14 from "../assets/CSR14.jpg";
-import CSR15 from "../assets/CSR15.jpg";
-import CSR16 from "../assets/CSR16.jpg";
-
-// Create array for easy mapping
-const csrImages = [
-  { id: 1, src: CSR1, alt: "CSR Activity 1" },
-  { id: 2, src: CSR2, alt: "CSR Activity 2" },
-  { id: 3, src: CSR3, alt: "CSR Activity 3" },
-  { id: 4, src: CSR4, alt: "CSR Activity 4" },
-  { id: 5, src: CSR5, alt: "CSR Activity 5" },
-  { id: 6, src: CSR6, alt: "CSR Activity 6" },
-  { id: 7, src: CSR7, alt: "CSR Activity 7" },
-  { id: 8, src: CSR8, alt: "CSR Activity 8" },
-  { id: 9, src: CSR9, alt: "CSR Activity 9" },
-  { id: 10, src: CSR10, alt: "CSR Activity 10" },
-  { id: 11, src: CSR11, alt: "CSR Activity 11" },
-  { id: 12, src: CSR12, alt: "CSR Activity 12" },
-  { id: 13, src: CSR13, alt: "CSR Activity 13" },
-  { id: 14, src: CSR14, alt: "CSR Activity 14" },
-  { id: 15, src: CSR15, alt: "CSR Activity 15" },
-  { id: 16, src: CSR16, alt: "CSR Activity 16" },
-];
+// Cloudinary image URLs (replace YOUR_CLOUD_NAME)
+const csrImages = Array.from({ length: 16 }, (_, i) => ({
+  id: i + 1,
+  src: `https://res.cloudinary.com/dfcuvzjii/image/upload/v17280012${30 + i}/CSR${i + 1}.jpg`,
+  alt: `CSR Activity ${i + 1}`,
+}));
 
 const CSRPage = () => {
   const [selectedImg, setSelectedImg] = useState(null);
@@ -127,9 +96,11 @@ const CSRPage = () => {
           <li>In the years 2018 & 2019, we sponsored tuition fees for 203 students.</li>
           <li>In the year 2021, we donated around 3,000 Made-in-India Covid vaccines to the general public free of cost.</li>
         </ul>
+        {/* Your text content stays the same */}
       </div>
     </div>
   );
 };
 
 export default CSRPage;
+
