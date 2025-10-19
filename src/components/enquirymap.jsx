@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
   LayersControl,
   Marker,
   Popup,
+  useMap,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -13,7 +14,6 @@ import LoadingBar from "react-top-loading-bar";
 import Warehouse from "../assets/warehouse.svg";
 import office from "../assets/office.svg";
 
-const { BaseLayer } = LayersControl;
 // Custom marker icons
 const officeIcon = new L.Icon({
   iconUrl: office,
@@ -24,6 +24,35 @@ const warehouseIcon = new L.Icon({
   iconUrl: Warehouse,
   iconSize: [32, 32],
 });
+
+const { BaseLayer } = LayersControl;
+
+// ✅ Custom component to add compass + home button
+const MapControls = ({ bounds }) => {
+  const map = useMap();
+
+  useEffect(() => {
+
+    // 🏠 Add Home button
+    const homeControl = L.control({ position: "topright" });
+    homeControl.onAdd = function () {
+      const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      div.style.backgroundColor = "#fff";
+      div.style.cursor = "pointer";
+      div.style.padding = "6px 10px";
+      div.style.fontSize = "16px";
+      div.innerHTML = "🏠";
+      div.title = "View Both Locations";
+      div.onclick = () => {
+        map.fitBounds(bounds);
+      };
+      return div;
+    };
+    homeControl.addTo(map);
+  }, [map, bounds]);
+
+  return null;
+};
 
 const EnquiryMap = () => {
   const loaderRef = useRef(null);
@@ -68,21 +97,20 @@ const EnquiryMap = () => {
     }
   };
 
+  const bounds = [
+    [18.955694, 72.827072],
+    [19.403531, 72.850531],
+  ];
+
   return (
     <div className="flex flex-col md:flex-row w-full p-4 gap-4">
-      {/* 🔹 Top Loading Bar */}
       <LoadingBar color="#facc15" ref={loaderRef} height={4} />
-
-      {/* 🔹 Toast Notifications */}
       <Toaster position="top-center" reverseOrder={false} />
 
       {/* Left Map Section */}
       <div className="relative w-full md:w-1/2 h-64 sm:h-72 md:h-80 lg:h-96 xl:h-[32rem] rounded-lg shadow-md overflow-hidden">
         <MapContainer
-          bounds={[
-            [18.955694, 72.827072], // Head Office
-            [19.403531, 72.850531], // Warehouse
-          ]}
+          bounds={bounds}
           scrollWheelZoom={true}
           className="w-full h-full rounded-lg"
         >
@@ -113,6 +141,8 @@ const EnquiryMap = () => {
               <br /> Thane, India
             </Popup>
           </Marker>
+
+          <MapControls bounds={bounds} />
         </MapContainer>
       </div>
 
