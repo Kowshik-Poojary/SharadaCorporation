@@ -72,8 +72,10 @@ const EnquiryMap = () => {
       {/* Left Map Section */}
       <div className="relative w-full md:w-1/2 h-64 sm:h-72 md:h-80 lg:h-96 xl:h-[32rem] rounded-lg shadow-md overflow-hidden">
         <MapContainer
-          center={[19.076, 72.8777]}
-          zoom={12}
+          bounds={[
+            [18.955694, 72.827072], // Head Office
+            [19.403531, 72.850531], // Warehouse
+          ]}
           scrollWheelZoom={true}
           className="w-full h-full rounded-lg"
         >
