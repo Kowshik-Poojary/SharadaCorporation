@@ -32,7 +32,6 @@ const MapControls = ({ bounds }) => {
   const map = useMap();
 
   useEffect(() => {
-
     // 🏠 Add Home button
     const homeControl = L.control({ position: "topright" });
     homeControl.onAdd = function () {
@@ -128,17 +127,47 @@ const EnquiryMap = () => {
             </BaseLayer>
           </LayersControl>
 
+          {/* ✅ Head Office Marker */}
           <Marker position={[18.955694, 72.827072]} icon={officeIcon}>
             <Popup>
-              <b>Head Office</b>
-              <br /> Mumbai, India
+              <div
+                onClick={() =>
+                  window.open(
+                    "https://maps.app.goo.gl/UgiDPJcUjnUvZYBw5",
+                    "_blank"
+                  )
+                }
+                className="cursor-pointer text-center"
+              >
+                <b>Head Office ,</b>
+                <br />
+                Mumbai <br/>
+                <span className="text-blue-600 underline">
+                  Open in Google Maps
+                </span>
+              </div>
             </Popup>
           </Marker>
 
+          {/* ✅ Warehouse Marker */}
           <Marker position={[19.403531, 72.850531]} icon={warehouseIcon}>
             <Popup>
-              <b>Warehouse</b>
-              <br /> Thane, India
+              <div
+                onClick={() =>
+                  window.open(
+                    "https://maps.app.goo.gl/r6BRJWL3zVYXjftG7",
+                    "_blank"
+                  )
+                }
+                className="cursor-pointer text-center"
+              >
+                <b>Warehouse ,</b>
+                <br />
+                Vasai <br/>
+                <span className="text-blue-600 underline">
+                  Open in Google Maps
+                </span>
+              </div>
             </Popup>
           </Marker>
 
