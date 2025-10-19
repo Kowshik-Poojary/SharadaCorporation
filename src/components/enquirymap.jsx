@@ -78,13 +78,13 @@ const EnquiryMap = () => {
           className="w-full h-full rounded-lg"
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[19.076, 72.8777]} icon={officeIcon}>
+          <Marker position={[18.955694, 72.827072]} icon={officeIcon}>
             <Popup>
               <b>Head Office</b>
               <br /> Mumbai, India
             </Popup>
           </Marker>
-          <Marker position={[19.2183, 72.9781]} icon={warehouseIcon}>
+          <Marker position={[19.403531, 72.850531]} icon={warehouseIcon}>
             <Popup>
               <b>Warehouse</b>
               <br /> Thane, India
