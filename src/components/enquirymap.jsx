@@ -1,5 +1,11 @@
 import React, { useState, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  LayersControl,
+  Marker,
+  Popup,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import toast, { Toaster } from "react-hot-toast";
@@ -7,6 +13,7 @@ import LoadingBar from "react-top-loading-bar";
 import Warehouse from "../assets/warehouse.svg";
 import office from "../assets/office.svg";
 
+const { BaseLayer } = LayersControl;
 // Custom marker icons
 const officeIcon = new L.Icon({
   iconUrl: office,
@@ -79,13 +86,27 @@ const EnquiryMap = () => {
           scrollWheelZoom={true}
           className="w-full h-full rounded-lg"
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <LayersControl position="topright">
+            <BaseLayer checked name="Street View">
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            </BaseLayer>
+
+            <BaseLayer name="Terrain View">
+              <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
+            </BaseLayer>
+
+            <BaseLayer name="Satellite View">
+              <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
+            </BaseLayer>
+          </LayersControl>
+
           <Marker position={[18.955694, 72.827072]} icon={officeIcon}>
             <Popup>
               <b>Head Office</b>
               <br /> Mumbai, India
             </Popup>
           </Marker>
+
           <Marker position={[19.403531, 72.850531]} icon={warehouseIcon}>
             <Popup>
               <b>Warehouse</b>
