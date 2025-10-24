@@ -30,9 +30,11 @@ const { BaseLayer } = LayersControl;
 // ✅ Custom component to add compass + home button
 const MapControls = ({ bounds }) => {
   const map = useMap();
+  const controlAdded = useRef(false);
 
   useEffect(() => {
-    // 🏠 Add Home button
+    if (controlAdded.current) return; 
+
     const homeControl = L.control({ position: "topright" });
     homeControl.onAdd = function () {
       const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
@@ -48,6 +50,8 @@ const MapControls = ({ bounds }) => {
       return div;
     };
     homeControl.addTo(map);
+
+    controlAdded.current = true; // mark as added
   }, [map, bounds]);
 
   return null;
