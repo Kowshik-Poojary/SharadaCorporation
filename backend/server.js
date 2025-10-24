@@ -11,7 +11,11 @@ import catalogueRoutes from "./routes/catalogueRoutes.js";
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // or your frontend URL for production
+  credentials: true
+}));
+
 app.use(express.json());
 
 mongoose
