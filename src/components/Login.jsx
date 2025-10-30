@@ -16,8 +16,14 @@ const Login = ({ setUser, loggedOut }) => {
   const [newPassword, setNewPassword] = useState("");
   const loaderRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Show logout success message
+  // ✅ Email + Password Regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex =
+    /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  // ✅ Show logout success message
   useEffect(() => {
     if (loggedOut) {
       setSuccessMessage("Successfully logged out!");
@@ -28,15 +34,21 @@ const Login = ({ setUser, loggedOut }) => {
   // ---------- FORGOT PASSWORD ----------
   const handleForgotPassword = async () => {
     if (!email) return setMessage("Please enter your email first.");
+    if (!emailRegex.test(email))
+      return setMessage("Please enter a valid email address.");
+
     setIsLoading(true);
     loaderRef.current?.continuousStart();
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/users/forgot-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
       const data = await res.json();
 
       if (res.ok) {
@@ -55,12 +67,22 @@ const Login = ({ setUser, loggedOut }) => {
 
   // ---------- RESET PASSWORD ----------
   const handleResetPassword = async () => {
+    if (!emailRegex.test(email))
+      return setMessage("Please enter a valid email address.");
+    if (!passwordRegex.test(newPassword))
+      return setMessage(
+        "Password must contain 1 uppercase, 1 number, 1 special character, and be at least 8 characters long."
+      );
+
     try {
-      const res = await fetch("http://localhost:5000/api/users/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code: resetCode, newPassword }),
-      });
+      const res = await fetch(
+        "http://localhost:5000/api/users/reset-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, code: resetCode, newPassword }),
+        }
+      );
       const data = await res.json();
 
       if (res.ok) {
@@ -78,6 +100,14 @@ const Login = ({ setUser, loggedOut }) => {
 
   // ---------- SIGNUP ----------
   const handleSignup = async () => {
+    if (!name.trim()) return setMessage("Full name is required.");
+    if (!emailRegex.test(email))
+      return setMessage("Please enter a valid email address.");
+    if (!passwordRegex.test(password))
+      return setMessage(
+        "Password must contain 1 uppercase, 1 number, 1 special character, and be at least 8 characters long."
+      );
+
     try {
       const res = await fetch("http://localhost:5000/api/users/signup", {
         method: "POST",
@@ -100,6 +130,10 @@ const Login = ({ setUser, loggedOut }) => {
 
   // ---------- LOGIN ----------
   const handleLogin = async () => {
+    if (!emailRegex.test(email))
+      return setMessage("Please enter a valid email address.");
+    if (!password) return setMessage("Password is required.");
+
     try {
       const res = await fetch("http://localhost:5000/api/users/login", {
         method: "POST",
@@ -175,7 +209,6 @@ const Login = ({ setUser, loggedOut }) => {
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100 relative">
-      {/* ✅ Loader bar at top */}
       <LoadingBar color="#facc15" ref={loaderRef} height={4} />
 
       <div className="bg-white p-8 rounded-2xl shadow-lg w-96">
@@ -183,13 +216,15 @@ const Login = ({ setUser, loggedOut }) => {
           {isSignup ? "Sign Up" : forgotPassword ? "Reset Password" : "Login"}
         </h2>
 
-        {/* Input Fields */}
         {isSignup && (
           <input
             type="text"
             placeholder="Full Name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              setMessage("");
+            }}
             className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         )}
@@ -198,21 +233,38 @@ const Login = ({ setUser, loggedOut }) => {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setMessage("");
+          }}
           className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
 
         {!forgotPassword && (
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 mb-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
+          <div className="relative w-full mb-3">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setMessage(""); // ✅ clear error when user types again
+              }}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 pr-10"
+              required
+              pattern="^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+              title="Password must contain at least 1 uppercase letter, 1 number, 1 special character, and be at least 8 characters long."
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+            >
+              {showPassword ? "🔓" : "🔒"}
+            </button>
+          </div>
         )}
 
-        {/* Forgot Password Link */}
         {!isSignup && !forgotPassword && (
           <p
             className="text-sm text-right text-yellow-600 cursor-pointer mb-3"
@@ -222,7 +274,6 @@ const Login = ({ setUser, loggedOut }) => {
           </p>
         )}
 
-        {/* Reset Password Fields */}
         {forgotPassword && (
           <>
             <input
@@ -248,10 +299,8 @@ const Login = ({ setUser, loggedOut }) => {
           </>
         )}
 
-        {/* Error message */}
         {message && <p className="text-center text-red-500 mb-3">{message}</p>}
 
-        {/* Login/Signup button */}
         {!forgotPassword && (
           <button
             onClick={isSignup ? handleSignup : handleLogin}
@@ -261,7 +310,6 @@ const Login = ({ setUser, loggedOut }) => {
           </button>
         )}
 
-        {/* Google buttons */}
         {!forgotPassword && (
           <div className="mt-6 flex flex-col items-center space-y-3">
             {isSignup ? (
@@ -288,7 +336,6 @@ const Login = ({ setUser, loggedOut }) => {
           </div>
         )}
 
-        {/* Toggle login/signup */}
         {!forgotPassword && (
           <p className="text-sm text-center mt-4">
             {isSignup ? "Already have an account?" : "Don’t have an account?"}{" "}
@@ -305,7 +352,6 @@ const Login = ({ setUser, loggedOut }) => {
         )}
       </div>
 
-      {/* Footer Success Message */}
       {successMessage && (
         <div className="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-2 rounded-lg shadow-lg z-50">
           {successMessage}

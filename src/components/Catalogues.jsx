@@ -52,8 +52,8 @@ const Catalogues = ({ user }) => {
       {/* 🔹 Toast Notifications */}
       <Toaster position="top-center" reverseOrder={false} />
 
-      <h1 className="text-3xl font-bold">Welcome to Sharda Corporation</h1>
-      <p className="mt-4 text-gray-700">Explore our catalogues.</p>
+      <h1 className="text-3xl font-bold">Explore our catalogues</h1>
+      <p className="mt-4 text-gray-700">Sharda Corporation</p>
 
       <button
         onClick={handleRequest}

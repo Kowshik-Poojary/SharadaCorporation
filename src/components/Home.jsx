@@ -2,6 +2,7 @@
 import React from "react";
 import CategorySlider from "./CategorySlider";
 import EnquiryMap from "./enquirymap";
+import Login from "./Login";
 
 const Home = () => {
   return (

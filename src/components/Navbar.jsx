@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Sharda from "../assets/Sharda.png"
 
 const Navbar = ({ user, setUser }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,9 +21,19 @@ const Navbar = ({ user, setUser }) => {
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#380f0e] text-white shadow-md h-20">
       <div className="container mx-auto flex justify-between items-center p-4">
         {/* Logo */}
-        <a href="/" className="text-2xl font-bold">
-          Sharda Corporation
-        </a>
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center gap-3 cursor-pointer"
+        >
+          <img
+            src={Sharda}
+            alt="Sharda Corporation Logo"
+            className="w-12 h-12 object-contain rounded-full bg-white p-1"
+          />
+          <span className="text-2xl font-bold tracking-wide">
+            Sharda Corporation
+          </span>
+        </div>
 
         {/* Desktop Links */}
         <ul className="hidden md:flex space-x-6">

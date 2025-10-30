@@ -10,6 +10,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import toast, { Toaster } from "react-hot-toast";
+import { jwtDecode } from "jwt-decode"; // ✅ Correct import
 import LoadingBar from "react-top-loading-bar";
 import Warehouse from "../assets/warehouse.svg";
 import office from "../assets/office.svg";
@@ -27,13 +28,30 @@ const warehouseIcon = new L.Icon({
 
 const { BaseLayer } = LayersControl;
 
-// ✅ Custom component to add compass + home button
+// ✅ Token validation function
+const isTokenValid = () => {
+  const token = localStorage.getItem("token");
+  if (!token || token === "undefined" || token === "null") return false;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.exp * 1000 > Date.now(); // Check expiry
+  } catch {
+    return false;
+  }
+};
+
+// ✅ Map controls for home button
 const MapControls = ({ bounds }) => {
   const map = useMap();
   const controlAdded = useRef(false);
 
   useEffect(() => {
-    if (controlAdded.current) return; 
+    if (controlAdded.current) return;
+
+    const token = localStorage.getItem("token");
+    if (!token || token === "undefined" || token === "null") {
+      localStorage.removeItem("token");
+    }
 
     const homeControl = L.control({ position: "topright" });
     homeControl.onAdd = function () {
@@ -50,8 +68,7 @@ const MapControls = ({ bounds }) => {
       return div;
     };
     homeControl.addTo(map);
-
-    controlAdded.current = true; // mark as added
+    controlAdded.current = true;
   }, [map, bounds]);
 
   return null;
@@ -73,13 +90,26 @@ const EnquiryMap = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
+
+    // ✅ Token check before API
+    if (!isTokenValid()) {
+      toast.error("Session expired. Please login again.");
+      localStorage.removeItem("token");
+      setTimeout(() => (window.location.href = "/login"), 1000);
+      return;
+    }
+
     setIsLoading(true);
     loaderRef.current.continuousStart();
 
     try {
       const res = await fetch("http://localhost:5000/api/enquiry", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(form),
       });
 
@@ -121,31 +151,26 @@ const EnquiryMap = () => {
             <BaseLayer checked name="Street View">
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             </BaseLayer>
-
             <BaseLayer name="Terrain View">
               <TileLayer url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png" />
             </BaseLayer>
-
             <BaseLayer name="Satellite View">
               <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
             </BaseLayer>
           </LayersControl>
 
-          {/* ✅ Head Office Marker */}
+          {/* Office Marker */}
           <Marker position={[18.955694, 72.827072]} icon={officeIcon}>
             <Popup>
               <div
                 onClick={() =>
-                  window.open(
-                    "https://maps.app.goo.gl/UgiDPJcUjnUvZYBw5",
-                    "_blank"
-                  )
+                  window.open("https://maps.app.goo.gl/UgiDPJcUjnUvZYBw5", "_blank")
                 }
                 className="cursor-pointer text-center"
               >
-                <b>Head Office ,</b>
+                <b>Head Office,</b>
                 <br />
-                Mumbai <br/>
+                Mumbai <br />
                 <span className="text-blue-600 underline">
                   Open in Google Maps
                 </span>
@@ -153,21 +178,18 @@ const EnquiryMap = () => {
             </Popup>
           </Marker>
 
-          {/* ✅ Warehouse Marker */}
+          {/* Warehouse Marker */}
           <Marker position={[19.403531, 72.850531]} icon={warehouseIcon}>
             <Popup>
               <div
                 onClick={() =>
-                  window.open(
-                    "https://maps.app.goo.gl/r6BRJWL3zVYXjftG7",
-                    "_blank"
-                  )
+                  window.open("https://maps.app.goo.gl/r6BRJWL3zVYXjftG7", "_blank")
                 }
                 className="cursor-pointer text-center"
               >
-                <b>Warehouse ,</b>
+                <b>Warehouse,</b>
                 <br />
-                Vasai <br/>
+                Vasai <br />
                 <span className="text-blue-600 underline">
                   Open in Google Maps
                 </span>
