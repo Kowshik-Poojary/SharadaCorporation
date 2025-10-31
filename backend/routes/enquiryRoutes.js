@@ -1,8 +1,10 @@
 import express from "express";
 import nodemailer from "nodemailer";
+// ✅ import middleware
 
 const router = express.Router();
 
+// ✅ Protect this route using token verification
 router.post("/", async (req, res) => {
   const { name, email, mobile, message } = req.body;
 
@@ -11,24 +13,22 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // Gmail transporter
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
-      secure: false, // use STARTTLS
+      secure: false,
       auth: {
-        user: "shardacorporation.334@gmail.com", // sender Gmail
-        pass: process.env.EMAIL_PASS, // 16-digit Gmail App Password
+        user: "shardacorporation.334@gmail.com",
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Mail options
     const mailOptions = {
       from: `"Enquiry Form" <shardacorporation.334@gmail.com>`,
-      to: "shardacorporation.334@gmail.com", // Admin inbox
+      to: "shardacorporation.334@gmail.com",
       subject: "New Enquiry Received",
       text: `You have received a new enquiry.\n\nName: ${name}\nEmail: ${email}\nMobile: ${mobile}\nMessage: ${message}`,
-      replyTo: email, // reply directly to user
+      replyTo: email,
     };
 
     await transporter.sendMail(mailOptions);

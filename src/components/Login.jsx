@@ -144,6 +144,7 @@ const Login = ({ setUser, loggedOut }) => {
 
       if (res.ok) {
         setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
         setSuccessMessage("Successfully logged in!");
         setTimeout(() => {
           setSuccessMessage("");
@@ -169,6 +170,7 @@ const Login = ({ setUser, loggedOut }) => {
 
       if (res.ok) {
         setUser(data.user);
+        localStorage.setItem("user", JSON.stringify(data));
         setSuccessMessage("Successfully logged in with Google!");
         setTimeout(() => {
           setSuccessMessage("");

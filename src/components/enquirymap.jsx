@@ -10,48 +10,20 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import toast, { Toaster } from "react-hot-toast";
-import { jwtDecode } from "jwt-decode"; // ✅ Correct import
 import LoadingBar from "react-top-loading-bar";
 import Warehouse from "../assets/warehouse.svg";
 import office from "../assets/office.svg";
 
-// Custom marker icons
-const officeIcon = new L.Icon({
-  iconUrl: office,
-  iconSize: [32, 32],
-});
-
-const warehouseIcon = new L.Icon({
-  iconUrl: Warehouse,
-  iconSize: [32, 32],
-});
-
+const officeIcon = new L.Icon({ iconUrl: office, iconSize: [32, 32] });
+const warehouseIcon = new L.Icon({ iconUrl: Warehouse, iconSize: [32, 32] });
 const { BaseLayer } = LayersControl;
 
-// ✅ Token validation function
-const isTokenValid = () => {
-  const token = localStorage.getItem("token");
-  if (!token || token === "undefined" || token === "null") return false;
-  try {
-    const decoded = jwtDecode(token);
-    return decoded.exp * 1000 > Date.now(); // Check expiry
-  } catch {
-    return false;
-  }
-};
-
-// ✅ Map controls for home button
 const MapControls = ({ bounds }) => {
   const map = useMap();
   const controlAdded = useRef(false);
 
   useEffect(() => {
     if (controlAdded.current) return;
-
-    const token = localStorage.getItem("token");
-    if (!token || token === "undefined" || token === "null") {
-      localStorage.removeItem("token");
-    }
 
     const homeControl = L.control({ position: "topright" });
     homeControl.onAdd = function () {
@@ -62,9 +34,7 @@ const MapControls = ({ bounds }) => {
       div.style.fontSize = "16px";
       div.innerHTML = "🏠";
       div.title = "View Both Locations";
-      div.onclick = () => {
-        map.fitBounds(bounds);
-      };
+      div.onclick = () => map.fitBounds(bounds);
       return div;
     };
     homeControl.addTo(map);
@@ -74,7 +44,7 @@ const MapControls = ({ bounds }) => {
   return null;
 };
 
-const EnquiryMap = () => {
+const EnquiryMap = ({ user }) => {
   const loaderRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState({
@@ -84,33 +54,39 @@ const EnquiryMap = () => {
     message: "",
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  // fallback: try to read user from localStorage if parent didn't pass it
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
-    // ✅ Token check before API
-    if (!isTokenValid()) {
-      toast.error("Session expired. Please login again.");
-      localStorage.removeItem("token");
-      setTimeout(() => (window.location.href = "/login"), 1000);
+    // Try from prop or localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const userEmail =
+      user?.email ||
+      user?.user?.email ||
+      storedUser?.email ||
+      storedUser?.user?.email;
+
+    if (!userEmail) {
+      toast.error("Please login before submitting enquiry.");
+      setTimeout(() => (window.location.href = "/login"), 800);
       return;
     }
 
     setIsLoading(true);
-    loaderRef.current.continuousStart();
+    loaderRef.current?.continuousStart?.();
 
     try {
       const res = await fetch("http://localhost:5000/api/enquiry", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        // include userEmail in body so backend can associate
+        body: JSON.stringify({ ...form, userEmail }),
       });
 
       const data = await res.json();
@@ -119,14 +95,15 @@ const EnquiryMap = () => {
         toast.success(data.message || "Enquiry submitted successfully!");
         setForm({ name: "", email: "", mobile: "", message: "" });
       } else {
-        toast.error(data.message || "Error sending enquiry.");
+        // backend responded with 4xx/5xx
+        toast.error(data.message || "Failed to send enquiry.");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Enquiry error:", err);
       toast.error("Server error. Try again later.");
     } finally {
       setIsLoading(false);
-      loaderRef.current.complete();
+      loaderRef.current?.complete?.();
     }
   };
 
@@ -159,12 +136,14 @@ const EnquiryMap = () => {
             </BaseLayer>
           </LayersControl>
 
-          {/* Office Marker */}
           <Marker position={[18.955694, 72.827072]} icon={officeIcon}>
             <Popup>
               <div
                 onClick={() =>
-                  window.open("https://maps.app.goo.gl/UgiDPJcUjnUvZYBw5", "_blank")
+                  window.open(
+                    "https://maps.app.goo.gl/UgiDPJcUjnUvZYBw5",
+                    "_blank"
+                  )
                 }
                 className="cursor-pointer text-center"
               >
@@ -178,12 +157,14 @@ const EnquiryMap = () => {
             </Popup>
           </Marker>
 
-          {/* Warehouse Marker */}
           <Marker position={[19.403531, 72.850531]} icon={warehouseIcon}>
             <Popup>
               <div
                 onClick={() =>
-                  window.open("https://maps.app.goo.gl/r6BRJWL3zVYXjftG7", "_blank")
+                  window.open(
+                    "https://maps.app.goo.gl/r6BRJWL3zVYXjftG7",
+                    "_blank"
+                  )
                 }
                 className="cursor-pointer text-center"
               >
@@ -218,7 +199,6 @@ const EnquiryMap = () => {
             required
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             type="email"
             name="email"
@@ -228,7 +208,6 @@ const EnquiryMap = () => {
             required
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             type="tel"
             name="mobile"
@@ -238,7 +217,6 @@ const EnquiryMap = () => {
             required
             className="w-full p-3 border rounded-lg"
           />
-
           <textarea
             name="message"
             placeholder="Message"
