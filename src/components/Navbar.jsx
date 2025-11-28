@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
-import Sharda from "../assets/Sharda.png"
+import Sharda from "../assets/Sharda.png";
 
 const Navbar = ({ user, setUser }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,6 +77,14 @@ const Navbar = ({ user, setUser }) => {
             Login
           </button>
         )}
+        {user?.isAdmin && (
+          <button
+            onClick={() => navigate("/adminpanel")}
+            className="hidden md:block bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400 transition mr-3"
+          >
+            Admin Panel
+          </button>
+        )}
 
         {/* Mobile Hamburger */}
         <button
@@ -133,6 +141,20 @@ const Navbar = ({ user, setUser }) => {
                 </button>
               )}
             </li>
+            {/* ✅ Admin Panel Button (Mobile) */}
+            {user?.isAdmin && (
+              <li>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate("/adminpanel");
+                  }}
+                  className="w-full bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400 transition"
+                >
+                  Admin Panel
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       )}

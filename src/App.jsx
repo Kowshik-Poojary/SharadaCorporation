@@ -15,6 +15,7 @@ import Footer from "./components/Footer";
 import Products from "./components/Products";
 import ProductDetail from "./components/ProductDetail";
 import Loader from "./components/Loader";
+import AdminLogin from "./components/AdminLogin";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -49,6 +50,7 @@ function App() {
             <Route path="/gallery" element={<Gallerys />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
+            <Route path="/adminpanel" element={<AdminLogin />} />
           </Routes>
         </div>
         <Footer />

@@ -23,6 +23,8 @@ const Login = ({ setUser, loggedOut }) => {
   const passwordRegex =
     /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
+    const ADMIN_EMAIL = "shardaadmin@gmail.com";
+
   // ✅ Show logout success message
   useEffect(() => {
     if (loggedOut) {
@@ -143,14 +145,21 @@ const Login = ({ setUser, loggedOut }) => {
       const data = await res.json();
 
       if (res.ok) {
-        setUser(data);
-        localStorage.setItem("user", JSON.stringify(data));
-        setSuccessMessage("Successfully logged in!");
-        setTimeout(() => {
-          setSuccessMessage("");
-          navigate("/");
-        }, 1200);
-      } else {
+  const isAdmin = email === ADMIN_EMAIL;
+
+  const userData = { ...data, isAdmin };
+
+  setUser(userData);
+  localStorage.setItem("user", JSON.stringify(userData));
+
+  setSuccessMessage("Successfully logged in!");
+
+  setTimeout(() => {
+    setSuccessMessage("");
+    navigate(isAdmin ? "/adminpanel" : "/");
+  }, 1200);
+}
+ else {
         setMessage(data.message || "Login failed.");
       }
     } catch {
