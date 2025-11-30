@@ -12,10 +12,11 @@ import Catalogues from "./components/Catalogues";
 import Gallerys from "./components/Gallerys";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
-import Products from "./components/Products";
-import ProductDetail from "./components/ProductDetail";
 import Loader from "./components/Loader";
 import AdminLogin from "./components/AdminLogin";
+import AdminUpload from "./components/AdminUpload";
+import ProductCatalogue from "./pages/ProductCatalogue";
+import ProductDetailView from "./pages/ProductDetailView";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -44,13 +45,22 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/csr" element={<CSR />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/catalogue" element={<Catalogues user={user} />} />
             <Route path="/gallery" element={<Gallerys />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login setUser={setUser} />} />
             <Route path="/adminpanel" element={<AdminLogin />} />
+            <Route path="/admin/upload" element={<AdminUpload />} />
+            <Route path="/products/catalogue" element={<ProductCatalogue />} />
+            <Route
+              path="/products/catalogue/:categoryName"
+              element={<ProductCatalogue />}
+            />
+
+            <Route
+              path="/products/details/:id"
+              element={<ProductDetailView />}
+            />
           </Routes>
         </div>
         <Footer />
@@ -60,4 +70,3 @@ function App() {
 }
 
 export default App;
-

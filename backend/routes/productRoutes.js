@@ -13,6 +13,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET all categories  ✅ FIXED
+router.get("/categories/list", async (req, res) => {
+  try {
+    const categories = await Product.distinct("category");
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET all products in a specific category
+router.get("/category/:categoryName", async (req, res) => {
+  try {
+    const products = await Product.find({ category: req.params.categoryName });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // GET single product by ID
 router.get("/:id", async (req, res) => {
   try {

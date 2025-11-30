@@ -11,7 +11,7 @@ const Navbar = ({ user, setUser }) => {
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
     { name: "CSR", path: "/csr" },
-    { name: "Products", path: "/products" },
+    { name: "Products", path: "/products/catalogue" },
     { name: "Catalogue", path: "/catalogue" },
     { name: "Gallery", path: "/gallery" },
     { name: "Contact Us", path: "/contact" },

@@ -8,6 +8,7 @@ import wishlistRoutes from "./routes/wishlistRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 import catalogueRoutes from "./routes/catalogueRoutes.js";
 
+
 dotenv.config();
 const app = express();
 
@@ -28,6 +29,8 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/catalogue", catalogueRoutes);
+
+
 
 app.listen(process.env.PORT, () =>
   console.log(`🚀 Server running on port ${process.env.PORT}`)
