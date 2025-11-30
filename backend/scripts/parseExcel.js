@@ -3,23 +3,20 @@ import fs from "fs";
 
 // Clean category name globally
 function cleanCategory(name) {
-  // Special rename
-  if (name.trim() === "SMI 8_9_10") {
-    return "Mini Presentation Items";
-  }
-
-  // Remove any trailing digits or _digits
+  if (name.trim() === "SMI 8_9_10") return "Mini Presentation Items";
   return name.replace(/[_\s]*\d+$/, "").trim();
 }
 
-// Detect header row
-function isHeaderRow(row) {
-  if (!row) return false;
-  const keywords = ["code", "size", "dia", "width", "height", "qty", "cbm", "weight"];
-  return row.some(cell =>
-    cell &&
-    keywords.some(key => String(cell).toLowerCase().includes(key))
-  );
+// Detect product name row → exactly 1 non-empty cell
+function isProductNameRow(row) {
+  const nonEmpty = row.filter((v) => v && v.trim() !== "");
+  return nonEmpty.length === 1;
+}
+
+// Detect header row → the row AFTER product name
+function isHeaderRowAfterProductName(row) {
+  const nonEmpty = row.filter((v) => v && v.trim() !== "");
+  return nonEmpty.length >= 2; // must contain multiple headings
 }
 
 function parseSheet(sheetName, sheet) {
@@ -29,59 +26,90 @@ function parseSheet(sheetName, sheet) {
   let currentProduct = null;
   let header = null;
   const products = [];
+  let state = "LOOKING_FOR_PRODUCT";
 
-  const isProbablyHeader = (row) => {
-    if (!row) return false;
-    const nonEmpty = row.filter(x => x !== "");
-    if (nonEmpty.length < 2) return false;
+  const cloudName = "<cloud_name>"; // change this
+  const cloudinaryBase = `https://res.cloudinary.com/${cloudName}/image/upload/sharda/variants/`;
 
-    // A header usually contains short column labels
-    return nonEmpty.every(cell => cell.length <= 12);
-  };
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i].map((c) => String(c || "").trim());
+    const nonEmpty = row.filter((x) => x !== "");
 
-  const isProbablyProductName = (row) => {
-    if (!row) return false;
-    const nonEmpty = row.filter(x => x !== "");
-    if (nonEmpty.length !== 1) return false;
-    const name = nonEmpty[0];
-    return name.length > 2; // avoid capturing random numbers
-  };
+    if (nonEmpty.length === 0) continue;
 
-  rows.forEach((row) => {
-    const cleanRow = row.map(cell => String(cell || "").trim());
-    const nonEmpty = cleanRow.filter(cell => cell !== "");
-
-    if (nonEmpty.length === 0) return;
-
-    // Detect header by pattern rather than keywords
-    if (isProbablyHeader(cleanRow)) {
-      header = cleanRow;
-      return;
-    }
-
-    // Detect product name ANYWHERE in row
-    if (isProbablyProductName(cleanRow)) {
+    // STEP 1: PRODUCT NAME
+    if (state === "LOOKING_FOR_PRODUCT" && isProductNameRow(row)) {
       currentProduct = {
         name: nonEmpty[0],
         category: cleanedCategory,
         variants: [],
         imageUrl: "",
-        description: ""
+        description: "",
       };
       products.push(currentProduct);
-      return;
+      state = "LOOKING_FOR_HEADER";
+      continue;
     }
 
-    // Variant rows
-    if (header && currentProduct) {
-      const variantObj = {};
-      header.forEach((key, i) => {
-        variantObj[key] = cleanRow[i] || "";
-      });
-      currentProduct.variants.push({ data: variantObj });
-      return;
+    // STEP 2: HEADER ROW
+    if (state === "LOOKING_FOR_HEADER" && isHeaderRowAfterProductName(row)) {
+      header = row; // Exact Excel header names
+      state = "READING_VARIANTS";
+      continue;
     }
-  });
+
+    // STEP 3: VARIANT ROWS
+    if (state === "READING_VARIANTS") {
+      // If new product starts
+      if (isProductNameRow(row)) {
+        currentProduct = {
+          name: nonEmpty[0],
+          category: cleanedCategory,
+          variants: [],
+          imageUrl: "",
+          description: "",
+        };
+        products.push(currentProduct);
+        header = null;
+        state = "LOOKING_FOR_HEADER";
+        continue;
+      }
+
+      if (!header) continue;
+
+      // Create variant row
+      const variantObj = {};
+      header.forEach((h, idx) => {
+        variantObj[h] = row[idx] || "";
+      });
+
+      // Skip empty rows
+      const meaningful = Object.values(variantObj).some(
+        (v) => v && v.trim() !== "" && v !== "-"
+      );
+      if (!meaningful) continue;
+
+      // 🔥 FIND CODE COLUMN
+      let codeValue = null;
+      for (const key of Object.keys(variantObj)) {
+        if (key.toLowerCase().includes("code")) {
+          codeValue = variantObj[key];
+          break;
+        }
+      }
+
+      // 🔥 ADD VARIANT IMAGE URL (if code exists)
+      if (codeValue) {
+        const sanitizedCode = codeValue.replace(/\s+/g, ""); // remove spaces
+        variantObj.imageUrl = `${cloudinaryBase}${sanitizedCode}.jpg`;
+      } else {
+        variantObj.imageUrl = ""; // no code found
+      }
+
+      // Push variant
+      currentProduct.variants.push({ data: variantObj });
+    }
+  }
 
   return products;
 }
@@ -98,7 +126,7 @@ function main() {
   const workbook = XLSX.readFile(excelPath);
   let allProducts = [];
 
-  workbook.SheetNames.forEach(sheetName => {
+  workbook.SheetNames.forEach((sheetName) => {
     const sheet = workbook.Sheets[sheetName];
     const parsed = parseSheet(sheetName, sheet);
     allProducts = [...allProducts, ...parsed];

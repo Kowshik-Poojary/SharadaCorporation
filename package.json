@@ -19,6 +19,7 @@
     "express": "^5.1.0",
     "framer-motion": "^12.23.22",
     "google-auth-library": "^10.4.0",
+    "i": "^0.3.7",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
