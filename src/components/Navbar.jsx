@@ -1,11 +1,47 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Menu, X } from "lucide-react";
 import Sharda from "../assets/Sharda.png";
 
 const Navbar = ({ user, setUser }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser?._id) {
+        setWishlistCount(0);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`/api/wishlist/${storedUser._id}`);
+        setWishlistCount(res.data.length);
+      } catch (err) {
+        console.error("Wishlist fetch error:", err);
+      }
+    };
+
+    fetchWishlist();
+  }, [user]); // runs when user logs in or logs out
+
+  useEffect(() => {
+  const update = () => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser?._id) {
+      axios.get(`/api/wishlist/${storedUser._id}`).then(res => {
+        setWishlistCount(res.data.length);
+      });
+    }
+  };
+
+  window.addEventListener("wishlistUpdated", update);
+  return () => window.removeEventListener("wishlistUpdated", update);
+}, []);
+
 
   const links = [
     { name: "Home", path: "/" },
@@ -56,6 +92,19 @@ const Navbar = ({ user, setUser }) => {
             </li>
           ))}
         </ul>
+        {user && (
+          <li
+            onClick={() => navigate("/wishlist")}
+            className="relative cursor-pointer text-lg hover:text-yellow-400 transition"
+          >
+            ❤️ Wishlist
+            {wishlistCount > 0 && (
+              <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                {wishlistCount}
+              </span>
+            )}
+          </li>
+        )}
 
         {/* ✅ Desktop Login / Logout Button */}
         {user ? (
@@ -114,6 +163,23 @@ const Navbar = ({ user, setUser }) => {
                 </NavLink>
               </li>
             ))}
+            {user && (
+  <li
+    onClick={() => {
+      setIsOpen(false);
+      navigate("/wishlist");
+    }}
+    className="cursor-pointer text-lg hover:text-yellow-400 transition relative"
+  >
+    ❤️ Wishlist
+    {wishlistCount > 0 && (
+      <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+        {wishlistCount}
+      </span>
+    )}
+  </li>
+)}
+
 
             {/* ✅ Mobile Login / Logout */}
             <li>

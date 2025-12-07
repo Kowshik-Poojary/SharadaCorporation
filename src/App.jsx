@@ -17,6 +17,7 @@ import AdminLogin from "./components/AdminLogin";
 import AdminUpload from "./components/AdminUpload";
 import ProductCatalogue from "./pages/ProductCatalogue";
 import ProductDetailView from "./pages/ProductDetailView";
+import WishlistPage from "./components/Wishlistpage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -52,6 +53,7 @@ function App() {
             <Route path="/adminpanel" element={<AdminLogin />} />
             <Route path="/admin/upload" element={<AdminUpload />} />
             <Route path="/products/catalogue" element={<ProductCatalogue />} />
+            <Route path="/wishlist" element={<WishlistPage />} />
             <Route
               path="/products/catalogue/:categoryName"
               element={<ProductCatalogue />}

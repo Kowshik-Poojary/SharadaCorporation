@@ -29,6 +29,7 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/catalogue", catalogueRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 
 

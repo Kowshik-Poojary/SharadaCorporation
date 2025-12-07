@@ -147,7 +147,7 @@ const Login = ({ setUser, loggedOut }) => {
       if (res.ok) {
   const isAdmin = email === ADMIN_EMAIL;
 
-  const userData = { ...data, isAdmin };
+  const userData = { ...data, isAdmin, token: data.token };
 
   setUser(userData);
   localStorage.setItem("user", JSON.stringify(userData));
@@ -178,8 +178,9 @@ const Login = ({ setUser, loggedOut }) => {
       const data = await res.json();
 
       if (res.ok) {
-        setUser(data.user);
-        localStorage.setItem("user", JSON.stringify(data));
+        const userData = { ...data.user, token: data.token };
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
         setSuccessMessage("Successfully logged in with Google!");
         setTimeout(() => {
           setSuccessMessage("");
