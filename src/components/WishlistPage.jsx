@@ -50,7 +50,7 @@ export default function WishlistPage() {
     }
   };
 
-  if (!userId) return <div className="p-6">Please login to view your wishlist.</div>;
+  if (!userId) return <div className="p-6">.  .  .</div>;
   if (!items.length) return <div className="p-6">Your wishlist is empty.</div>;
 
   const selectedItems = selectedKeys
