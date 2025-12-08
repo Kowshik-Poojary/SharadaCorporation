@@ -1,5 +1,7 @@
 import express from "express";
 import Wishlist from "../models/Wishlist.js";
+import Product from "../models/Product.js";
+
 
 const router = express.Router();
 
@@ -24,10 +26,41 @@ router.post("/add", async (req, res) => {
 });
 
 // Get wishlist
+// Get wishlist with product + variant details
 router.get("/:userId", async (req, res) => {
-  const data = await Wishlist.find({ userId: req.params.userId });
-  res.json(data);
+  try {
+    const wishlist = await Wishlist.find({ userId: req.params.userId });
+
+    const formatted = [];
+
+    for (const item of wishlist) {
+      const product = await Product.findById(item.productId);
+
+      if (!product) continue;
+
+      // find the matching variant
+      const variant = product.variants.find(
+        (v) => v.data["Code #"] === item.variantCode
+      );
+
+      if (!variant) continue;
+
+      formatted.push({
+        productId: product._id,
+        productName: product.name,
+        variantCode: item.variantCode,
+        imageUrl: variant.imageUrl || variant.data.imageUrl || "",
+        variantDetails: variant.data, // all fields from Excel
+      });
+    }
+
+    res.json(formatted);
+  } catch (err) {
+    console.log("❌ Wishlist Fetch Error:", err);
+    res.status(500).json({ error: "Server error fetching wishlist" });
+  }
 });
+
 
 // Remove wishlist item
 router.post("/remove", async (req, res) => {

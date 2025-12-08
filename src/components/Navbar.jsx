@@ -26,22 +26,21 @@ const Navbar = ({ user, setUser }) => {
     };
 
     fetchWishlist();
-  }, [user]); // runs when user logs in or logs out
+  }, [user]);
 
   useEffect(() => {
-  const update = () => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser?._id) {
-      axios.get(`/api/wishlist/${storedUser._id}`).then(res => {
-        setWishlistCount(res.data.length);
-      });
-    }
-  };
+    const update = () => {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (storedUser?._id) {
+        axios.get(`/api/wishlist/${storedUser._id}`).then((res) => {
+          setWishlistCount(res.data.length);
+        });
+      }
+    };
 
-  window.addEventListener("wishlistUpdated", update);
-  return () => window.removeEventListener("wishlistUpdated", update);
-}, []);
-
+    window.addEventListener("wishlistUpdated", update);
+    return () => window.removeEventListener("wishlistUpdated", update);
+  }, []);
 
   const links = [
     { name: "Home", path: "/" },
@@ -56,6 +55,7 @@ const Navbar = ({ user, setUser }) => {
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#380f0e] text-white shadow-md h-20">
       <div className="container mx-auto flex justify-between items-center p-4">
+
         {/* Logo */}
         <div
           onClick={() => navigate("/")}
@@ -71,7 +71,7 @@ const Navbar = ({ user, setUser }) => {
           </span>
         </div>
 
-        {/* Desktop Links */}
+        {/* Desktop Navigation */}
         <ul className="hidden md:flex space-x-6">
           {links.map((link) => (
             <li
@@ -92,10 +92,12 @@ const Navbar = ({ user, setUser }) => {
             </li>
           ))}
         </ul>
+
+        {/* ❤️ Wishlist - Desktop Only */}
         {user && (
           <li
             onClick={() => navigate("/wishlist")}
-            className="relative cursor-pointer text-lg hover:text-yellow-400 transition"
+            className="hidden md:block relative cursor-pointer text-lg hover:text-yellow-400 transition"
           >
             ❤️ Wishlist
             {wishlistCount > 0 && (
@@ -106,7 +108,7 @@ const Navbar = ({ user, setUser }) => {
           </li>
         )}
 
-        {/* ✅ Desktop Login / Logout Button */}
+        {/* Desktop Login / Logout */}
         {user ? (
           <button
             onClick={() => {
@@ -126,6 +128,8 @@ const Navbar = ({ user, setUser }) => {
             Login
           </button>
         )}
+
+        {/* Admin Panel - Desktop */}
         {user?.isAdmin && (
           <button
             onClick={() => navigate("/adminpanel")}
@@ -144,16 +148,18 @@ const Navbar = ({ user, setUser }) => {
         </button>
       </div>
 
-      {/* ✅ Mobile Menu */}
+      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-[#380f0e] px-6 pb-4">
           <ul className="flex flex-col space-y-4">
+
+            {/* Navigation Links */}
             {links.map((link) => (
               <li key={link.name}>
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `block transition duration-300 ${
+                    `block text-lg transition duration-300 ${
                       isActive ? "text-yellow-400" : "hover:text-yellow-400"
                     }`
                   }
@@ -163,25 +169,26 @@ const Navbar = ({ user, setUser }) => {
                 </NavLink>
               </li>
             ))}
+
+            {/* ❤️ Wishlist - before Login & Logout */}
             {user && (
-  <li
-    onClick={() => {
-      setIsOpen(false);
-      navigate("/wishlist");
-    }}
-    className="cursor-pointer text-lg hover:text-yellow-400 transition relative"
-  >
-    ❤️ Wishlist
-    {wishlistCount > 0 && (
-      <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-        {wishlistCount}
-      </span>
-    )}
-  </li>
-)}
+              <li
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate("/wishlist");
+                }}
+                className="relative cursor-pointer text-lg hover:text-yellow-400 transition flex items-center gap-2"
+              >
+                 Wishlist
+                {wishlistCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {wishlistCount}
+                  </span>
+                )}
+              </li>
+            )}
 
-
-            {/* ✅ Mobile Login / Logout */}
+            {/* Login / Logout */}
             <li>
               {user ? (
                 <button
@@ -207,7 +214,8 @@ const Navbar = ({ user, setUser }) => {
                 </button>
               )}
             </li>
-            {/* ✅ Admin Panel Button (Mobile) */}
+
+            {/* Admin Panel - Mobile */}
             {user?.isAdmin && (
               <li>
                 <button
