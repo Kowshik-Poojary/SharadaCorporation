@@ -1,24 +1,18 @@
+// models/Product.js
 import mongoose from "mongoose";
 
-const variantSchema = new mongoose.Schema(
-  {
-    data: { type: mongoose.Schema.Types.Mixed }, 
-    // example: { "Code #": "1704-28PG", "Size": "28 oz", "Dia In Cm": "8.5", ... }
-  },
-  { _id: false }
-);
+const variantSchema = new mongoose.Schema({
+  code: { type: String, required: false },               // extracted "Code #"
+  data: { type: mongoose.Schema.Types.Mixed },           // all original excel fields
+  imageUrl: { type: String },                            // variant-level image (cloudinary)
+}, { _id: true });
 
-const productSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },        // product name
-    category: { type: String, required: true },    // sheet name
-    variants: [variantSchema],                     // all sizes/types available
-    imageUrl: { type: String },                    // cloudinary url (optional)
-    description: { type: String },                 // optional
-  },
-  { timestamps: true }
-);
+const productSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  variants: [variantSchema],
+  representativeVariant: { type: mongoose.Schema.Types.ObjectId, ref: "Product.variants" },
+  description: { type: String },
+}, { timestamps: true });
 
-const Product = mongoose.model("Product", productSchema);
-
-export default Product;
+export default mongoose.model("Product", productSchema);

@@ -3,9 +3,15 @@ import path from "path";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
-import Product from "./models/Product.js";  // adjust path
+import Product from "./models/Product.js"; // adjust path
 
 dotenv.config();
+
+function cleanCategory(name) {
+  if (name.trim() === "SMI 8_9_10") return "Mini Presentation Items";
+  return name.replace(/[_\s]*\d+$/, "").trim();
+}
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -14,14 +20,14 @@ cloudinary.config({
 });
 
 // local images root folder
-const ROOT = "./images";
+const ROOT = path.resolve("C:/Users/Kowshik Poojary/Downloads/Images");
 
 async function uploadImage(localPath, cloudFolder, publicId) {
   try {
     const result = await cloudinary.uploader.upload(localPath, {
       folder: cloudFolder,
       public_id: publicId,
-      overwrite: true
+      overwrite: true,
     });
 
     return result.secure_url;
@@ -61,19 +67,13 @@ async function main() {
       if (!imageUrl) continue;
 
       // Find matching product+variant
-      const product = await Product.findOne({
-        category: category,
-        "variants.data": {
-          $elemMatch: {
-            $or: [
-              { code: code },
-              { "Code": code },
-              { "Code #": code },
-              { "Item Code": code }
-            ]
-          }
-        }
-      });
+      const cleaned = cleanCategory(category);
+
+const product = await Product.findOne({
+  category: cleaned,
+  "variants.data.Code #": code,
+});
+
 
       if (!product) {
         console.log(`⚠ No matching product found for ${code} in ${category}`);
@@ -84,13 +84,17 @@ async function main() {
       let updated = false;
 
       product.variants.forEach((v) => {
-        for (const key of Object.keys(v.data)) {
-          if (v.data[key] === code) {
-            v.data.imageUrl = imageUrl; // store cloudinary URL
-            updated = true;
-          }
-        }
-      });
+  // Main check: does this variant match the code?
+  if (v.data["Code #"] === code) {
+
+    // Update BOTH fields
+    v.imageUrl = imageUrl;        // schema-defined field
+    v.data.imageUrl = imageUrl;   // optional but helps compatibility
+
+    updated = true;
+  }
+});
+
 
       if (updated) {
         await product.save();

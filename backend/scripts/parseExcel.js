@@ -1,5 +1,6 @@
 import XLSX from "xlsx";
 import fs from "fs";
+import dotenv from "dotenv";
 
 // Clean category name globally
 function cleanCategory(name) {
@@ -28,7 +29,7 @@ function parseSheet(sheetName, sheet) {
   const products = [];
   let state = "LOOKING_FOR_PRODUCT";
 
-  const cloudName = "<cloud_name>"; // change this
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME; // change this
   const cloudinaryBase = `https://res.cloudinary.com/${cloudName}/image/upload/sharda/variants/`;
 
   for (let i = 0; i < rows.length; i++) {
@@ -100,8 +101,8 @@ function parseSheet(sheetName, sheet) {
 
       // 🔥 ADD VARIANT IMAGE URL (if code exists)
       if (codeValue) {
-        const sanitizedCode = codeValue.replace(/\s+/g, ""); // remove spaces
-        variantObj.imageUrl = `${cloudinaryBase}${sanitizedCode}.jpg`;
+        variantObj.imageUrl = "";
+
       } else {
         variantObj.imageUrl = ""; // no code found
       }
