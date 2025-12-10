@@ -33,6 +33,8 @@ import AdminUploadImages from "./pages/admin/AdminUploadImages";
 import AdminCategories from "./pages/admin/AdminCategories";
 import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import AdminAddVariant from "./pages/admin/AdminAddVariant";
+import AdminDeleteProduct from "./pages/admin/AdminDeleteProduct";
+import AdminDeleteVariant from "./pages/admin/AdminDeleteVariant";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -144,6 +146,15 @@ function App() {
                   <AdminAddVariant />
                 </AdminRoute>
               }
+            />
+
+            <Route
+              path="/admin/products/delete"
+              element={<AdminDeleteProduct />}
+            />
+            <Route
+              path="/admin/products/delete-variant"
+              element={<AdminDeleteVariant />}
             />
           </Routes>
         </div>
