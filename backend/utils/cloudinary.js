@@ -16,9 +16,7 @@ const storage = multer.diskStorage({});
 export const upload = multer({ storage });
 
 /* -------------------- UPLOAD FUNCTION -------------------- */
-export const uploadToCloudinary = async (filePath) => {
-  return cloudinary.uploader.upload(filePath, {
-    folder: "sharda/products",
-    resource_type: "image",
+export const uploadToCloudinary = (filePath, options = {}) =>
+  cloudinary.uploader.upload(filePath, {
+    folder: options.folder || "Products/Uncategorized",
   });
-};

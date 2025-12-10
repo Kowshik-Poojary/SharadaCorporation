@@ -19,7 +19,7 @@ export default function AdminAddVariant() {
   /* LOAD CATEGORIES */
   useEffect(() => {
     axios
-      .get("/api/products/all/list")
+      .get("/api/admin/categories/all/list")
       .then((res) => setCategories(res.data))
       .catch(() => setCategories([]));
   }, []);

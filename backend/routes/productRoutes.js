@@ -32,16 +32,17 @@ router.get("/all/list", async (req, res) => {
 
     const merged = Array.from(
       new Set([
-        ...productCats.map((c) => c?.trim()),
-        ...manualCats.map((c) => c.name.trim()),
+        ...productCats.map(c => c?.trim()),
+        ...manualCats.map(c => c.name.trim())
       ])
     ).filter(Boolean);
 
     res.json(merged);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to load categories" });
   }
 });
+
 
 // GET products in category
 router.get("/category/:categoryName", async (req, res) => {

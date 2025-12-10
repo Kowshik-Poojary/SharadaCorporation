@@ -260,4 +260,43 @@ router.delete("/:pid/variants/:vid", async (req, res) => {
 
 
 
+/* ------------------ UPLOAD IMAGE FOR A VARIANT ------------------ */
+router.post(
+  "/:productId/variant/:variantId/image",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const { productId, variantId } = req.params;
+
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+      const product = await Product.findById(productId);
+      if (!product) return res.status(404).json({ error: "Product not found" });
+
+      const variant = product.variants.id(variantId);
+      if (!variant)
+        return res.status(404).json({ error: "Variant not found" });
+
+      // Upload to Cloudinary inside category folder
+      const folderName = product.category.replace(/\s+/g, "_");
+
+      const uploaded = await uploadToCloudinary(req.file.path, {
+        folder: `Products/${folderName}/Variants`,
+      });
+
+      variant.imageUrl = uploaded.secure_url;
+      await product.save();
+
+      res.json({
+        success: true,
+        imageUrl: uploaded.secure_url,
+      });
+    } catch (err) {
+      console.error("Variant Upload Error:", err);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  }
+);
+
+
 export default router;
