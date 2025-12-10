@@ -65,8 +65,13 @@ export default function ProductDetailView() {
 
   if (!product) return <h2 className="p-6">Loading...</h2>;
 
-  const variantKeys = Object.keys(product.variants[0].data).filter(
-    (k) => k.toLowerCase() !== "imageurl"
+  // FIXED: Safely extract keys from first variant
+  const variantKeys = Array.from(
+    new Set(
+      product?.variants
+        ?.flatMap((v) => Object.keys(v?.data || {}))
+        .filter((k) => k.toLowerCase() !== "imageurl")
+    )
   );
 
   const toggleWishlist = async (variantCode) => {
@@ -110,7 +115,6 @@ export default function ProductDetailView() {
   return (
     <div className="p-4 md:p-8">
       <div className="flex flex-col md:flex-row gap-10">
-
         {/* LEFT PANEL – SINGLE IMAGE VIEWER */}
         <div className="md:w-1/2 w-full space-y-6">
           <div
@@ -162,7 +166,13 @@ export default function ProductDetailView() {
 
               <tbody>
                 {product.variants.map((variant, idx) => {
-                  const code = variant.data["Code #"];
+                  // SAFE CODE EXTRACTION
+                  const code =
+                    variant.code ||
+                    variant.data?.["Code #"] ||
+                    variant?._id?.slice(-6) ||
+                    "-";
+
                   const isWishlisted = wishlistedCodes.has(code);
 
                   return (
@@ -181,8 +191,8 @@ export default function ProductDetailView() {
                       <td className="px-3 py-2 border flex items-center gap-3">
                         <img
                           src={
-                            variant.imageUrl ||
-                            variant.data.imageUrl ||
+                            variant?.imageUrl ||
+                            variant?.data?.imageUrl ||
                             "/placeholder.webp"
                           }
                           alt={code}
@@ -202,8 +212,11 @@ export default function ProductDetailView() {
                       </td>
 
                       {variantKeys.map((key) => (
-                        <td key={key} className="px-4 py-3 border whitespace-nowrap">
-                          {variant.data[key] || "-"}
+                        <td
+                          key={key}
+                          className="px-4 py-3 border whitespace-nowrap"
+                        >
+                          {variant?.data?.[key] || "-"}
                         </td>
                       ))}
                     </tr>

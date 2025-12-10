@@ -1,5 +1,6 @@
 import express from "express";
-import Product from "../models/Product.js";
+import Product from "../models/Product.js";    // CORRECT
+import Category from "../models/Category.js";  // FIXED PATH
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET all categories  ✅ FIXED
+// OLD: product-only categories
 router.get("/categories/list", async (req, res) => {
   try {
     const categories = await Product.distinct("category");
@@ -23,7 +24,26 @@ router.get("/categories/list", async (req, res) => {
   }
 });
 
-// GET all products in a specific category
+// NEW: All categories (Product + Category collection)
+router.get("/all/list", async (req, res) => {
+  try {
+    const productCats = await Product.distinct("category");
+    const manualCats = await Category.find().select("name -_id");
+
+    const merged = Array.from(
+      new Set([
+        ...productCats.map((c) => c?.trim()),
+        ...manualCats.map((c) => c.name.trim()),
+      ])
+    ).filter(Boolean);
+
+    res.json(merged);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load categories" });
+  }
+});
+
+// GET products in category
 router.get("/category/:categoryName", async (req, res) => {
   try {
     const products = await Product.find({ category: req.params.categoryName });
@@ -33,7 +53,7 @@ router.get("/category/:categoryName", async (req, res) => {
   }
 });
 
-// GET single product by ID
+// GET single product
 router.get("/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);

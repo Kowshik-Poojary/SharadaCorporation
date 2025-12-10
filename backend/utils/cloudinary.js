@@ -1,36 +1,24 @@
-import express from "express";
-import Product from "../models/Product.js";
-import { upload } from "../utils/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
+import multer from "multer";
 
-const router = express.Router();
+dotenv.config();
 
-// UPLOAD product images
-router.post("/:productId", upload.array("images", 10), async (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "No images uploaded" });
-    }
-
-    const imageUrls = req.files.map((file) => file.path);
-
-    const product = await Product.findByIdAndUpdate(
-      req.params.productId,
-      { $set: { imageUrl: imageUrls[0] } }, // store first image OR replace with array
-      { new: true }
-    );
-
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    res.json({
-      message: "Images uploaded successfully",
-      imageUrls,
-      product,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+/* -------------------- CLOUDINARY CONFIG -------------------- */
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export default router;
+/* -------------------- MULTER (for file reading) -------------------- */
+const storage = multer.diskStorage({});
+export const upload = multer({ storage });
+
+/* -------------------- UPLOAD FUNCTION -------------------- */
+export const uploadToCloudinary = async (filePath) => {
+  return cloudinary.uploader.upload(filePath, {
+    folder: "sharda/products",
+    resource_type: "image",
+  });
+};

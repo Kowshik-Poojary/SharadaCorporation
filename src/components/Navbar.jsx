@@ -9,6 +9,9 @@ const Navbar = ({ user, setUser }) => {
   const navigate = useNavigate();
   const [wishlistCount, setWishlistCount] = useState(0);
 
+  /* --------------------------------------------
+     Fetch Wishlist Count
+  -------------------------------------------- */
   useEffect(() => {
     const fetchWishlist = async () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -28,6 +31,9 @@ const Navbar = ({ user, setUser }) => {
     fetchWishlist();
   }, [user]);
 
+  /* --------------------------------------------
+     Listen for wishlist updates (add/remove)
+  -------------------------------------------- */
   useEffect(() => {
     const update = () => {
       const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -42,6 +48,9 @@ const Navbar = ({ user, setUser }) => {
     return () => window.removeEventListener("wishlistUpdated", update);
   }, []);
 
+  /* --------------------------------------------
+     Nav Links
+  -------------------------------------------- */
   const links = [
     { name: "Home", path: "/" },
     { name: "About Us", path: "/about" },
@@ -56,7 +65,7 @@ const Navbar = ({ user, setUser }) => {
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#380f0e] text-white shadow-md h-20">
       <div className="container mx-auto flex justify-between items-center p-4">
 
-        {/* Logo */}
+        {/* LOGO */}
         <div
           onClick={() => navigate("/")}
           className="flex items-center gap-3 cursor-pointer"
@@ -71,7 +80,7 @@ const Navbar = ({ user, setUser }) => {
           </span>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* DESKTOP NAVIGATION */}
         <ul className="hidden md:flex space-x-6">
           {links.map((link) => (
             <li
@@ -81,9 +90,7 @@ const Navbar = ({ user, setUser }) => {
               <NavLink
                 to={link.path}
                 className={({ isActive }) =>
-                  `transition duration-300 ${
-                    isActive ? "text-yellow-400" : "hover:text-yellow-400"
-                  }`
+                  `${isActive ? "text-yellow-400" : "hover:text-yellow-400"}`
                 }
               >
                 {link.name}
@@ -93,11 +100,11 @@ const Navbar = ({ user, setUser }) => {
           ))}
         </ul>
 
-        {/* ❤️ Wishlist - Desktop Only */}
+        {/* ❤️ WISHLIST (DESKTOP ONLY) */}
         {user && (
-          <li
+          <button
             onClick={() => navigate("/wishlist")}
-            className="hidden md:block relative cursor-pointer text-lg hover:text-yellow-400 transition"
+            className="hidden md:flex relative text-lg hover:text-yellow-400 transition"
           >
             ❤️ Wishlist
             {wishlistCount > 0 && (
@@ -105,10 +112,10 @@ const Navbar = ({ user, setUser }) => {
                 {wishlistCount}
               </span>
             )}
-          </li>
+          </button>
         )}
 
-        {/* Desktop Login / Logout */}
+        {/* LOGIN / LOGOUT (DESKTOP) */}
         {user ? (
           <button
             onClick={() => {
@@ -129,17 +136,17 @@ const Navbar = ({ user, setUser }) => {
           </button>
         )}
 
-        {/* Admin Panel - Desktop */}
+        {/* ADMIN PANEL (DESKTOP) */}
         {user?.isAdmin && (
           <button
-            onClick={() => navigate("/adminpanel")}
+            onClick={() => navigate("/admin")}
             className="hidden md:block bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400 transition mr-3"
           >
             Admin Panel
           </button>
         )}
 
-        {/* Mobile Hamburger */}
+        {/* MOBILE HAMBURGER */}
         <button
           className="md:hidden text-white focus:outline-none"
           onClick={() => setIsOpen(!isOpen)}
@@ -148,38 +155,36 @@ const Navbar = ({ user, setUser }) => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* MOBILE MENU */}
       {isOpen && (
         <div className="md:hidden bg-[#380f0e] px-6 pb-4">
           <ul className="flex flex-col space-y-4">
 
-            {/* Navigation Links */}
+            {/* NAVIGATION LINKS */}
             {links.map((link) => (
               <li key={link.name}>
                 <NavLink
                   to={link.path}
-                  className={({ isActive }) =>
-                    `block text-lg transition duration-300 ${
-                      isActive ? "text-yellow-400" : "hover:text-yellow-400"
-                    }`
-                  }
                   onClick={() => setIsOpen(false)}
+                  className={({ isActive }) =>
+                    `block text-lg ${isActive ? "text-yellow-400" : "hover:text-yellow-400"}`
+                  }
                 >
                   {link.name}
                 </NavLink>
               </li>
             ))}
 
-            {/* ❤️ Wishlist - before Login & Logout */}
+            {/* ❤️ WISHLIST — BEFORE LOGIN/LOGOUT */}
             {user && (
               <li
                 onClick={() => {
                   setIsOpen(false);
                   navigate("/wishlist");
                 }}
-                className="relative cursor-pointer text-lg hover:text-yellow-400 transition flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer text-lg hover:text-yellow-400 transition"
               >
-                 Wishlist
+                ❤️ Wishlist
                 {wishlistCount > 0 && (
                   <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                     {wishlistCount}
@@ -188,7 +193,7 @@ const Navbar = ({ user, setUser }) => {
               </li>
             )}
 
-            {/* Login / Logout */}
+            {/* LOGIN / LOGOUT BUTTON */}
             <li>
               {user ? (
                 <button
@@ -215,13 +220,13 @@ const Navbar = ({ user, setUser }) => {
               )}
             </li>
 
-            {/* Admin Panel - Mobile */}
+            {/* ADMIN PANEL (MOBILE) */}
             {user?.isAdmin && (
               <li>
                 <button
                   onClick={() => {
                     setIsOpen(false);
-                    navigate("/adminpanel");
+                    navigate("/admin");
                   }}
                   className="w-full bg-green-500 text-black px-4 py-2 rounded-lg hover:bg-green-400 transition"
                 >

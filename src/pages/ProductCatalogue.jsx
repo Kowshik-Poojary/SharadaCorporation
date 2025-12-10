@@ -11,7 +11,7 @@ export default function ProductCatalogue() {
 
   useEffect(() => {
     axios
-      .get("/api/products/categories/list")
+      .get("/api/products/all/list")
       .then((res) => setCategories(res.data))
       .catch(() => setCategories([]));
   }, []);

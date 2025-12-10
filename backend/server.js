@@ -7,6 +7,10 @@ import productRoutes from "./routes/productRoutes.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 import catalogueRoutes from "./routes/catalogueRoutes.js";
+import adminCategories from "./routes/admin/adminCategories.js";
+import adminProducts from "./routes/admin/adminProducts.js";
+
+
 
 
 dotenv.config();
@@ -30,6 +34,8 @@ app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/catalogue", catalogueRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/admin/categories", adminCategories);
+app.use("/api/admin/products", adminProducts);
 
 
 
