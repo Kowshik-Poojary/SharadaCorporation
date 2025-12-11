@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import axios from "../../utils/axiosInstance";
 import AdminLayout from "./AdminLayout";
 import SearchSelect from "../../components/SearchSelect";
 import LoadingBar from "react-top-loading-bar";

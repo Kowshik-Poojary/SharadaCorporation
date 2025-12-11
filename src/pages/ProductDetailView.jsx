@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import axios from "../utils/axiosInstance";
 import { useParams, Link } from "react-router-dom";
 
 export default function ProductDetailView() {

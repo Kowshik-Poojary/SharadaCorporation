@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import LoadingBar from "react-top-loading-bar";
+import { BaseUrl } from "../../constant";
 
 const Catalogues = ({ user }) => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Catalogues = ({ user }) => {
       setIsLoading(true);
       loaderRef.current.continuousStart();
 
-      const response = await fetch("http://localhost:5000/api/catalogue/request", {
+      const response = await fetch(`${BaseUrl}/api/catalogue/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userEmail }),

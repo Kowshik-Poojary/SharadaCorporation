@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import LoadingBar from "react-top-loading-bar";
+import { BaseUrl } from "../../constant";
 
 const Login = ({ setUser, loggedOut }) => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const Login = ({ setUser, loggedOut }) => {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/users/forgot-password",
+        `${BaseUrl}/api/users/forgot-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -78,7 +79,7 @@ const Login = ({ setUser, loggedOut }) => {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/users/reset-password",
+        `${BaseUrl}/api/users/reset-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -111,7 +112,7 @@ const Login = ({ setUser, loggedOut }) => {
       );
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/signup", {
+      const res = await fetch(`${BaseUrl}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
@@ -137,7 +138,7 @@ const Login = ({ setUser, loggedOut }) => {
     if (!password) return setMessage("Password is required.");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/login", {
+      const res = await fetch(`${BaseUrl}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -170,7 +171,7 @@ const Login = ({ setUser, loggedOut }) => {
   // ---------- GOOGLE LOGIN ----------
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const res = await fetch("http://localhost:5000/api/users/google-login", {
+      const res = await fetch(`${BaseUrl}/api/users/google-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: credentialResponse.credential }),
@@ -197,7 +198,7 @@ const Login = ({ setUser, loggedOut }) => {
   // ---------- GOOGLE SIGNUP ----------
   const handleGoogleSignup = async (credentialResponse) => {
     try {
-      const res = await fetch("http://localhost:5000/api/users/google-signup", {
+      const res = await fetch(`${BaseUrl}/api/users/google-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: credentialResponse.credential }),

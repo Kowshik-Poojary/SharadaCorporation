@@ -13,6 +13,7 @@ import toast, { Toaster } from "react-hot-toast";
 import LoadingBar from "react-top-loading-bar";
 import Warehouse from "../assets/warehouse.svg";
 import office from "../assets/office.svg";
+import { BaseUrl } from "../../constant";
 
 const officeIcon = new L.Icon({ iconUrl: office, iconSize: [32, 32] });
 const warehouseIcon = new L.Icon({ iconUrl: Warehouse, iconSize: [32, 32] });
@@ -80,7 +81,7 @@ const EnquiryMap = ({ user }) => {
     loaderRef.current?.continuousStart?.();
 
     try {
-      const res = await fetch("http://localhost:5000/api/enquiry", {
+      const res = await fetch(`${BaseUrl}/api/enquiry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

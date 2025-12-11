@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "../../utils/axiosInstance";
 import AdminLayout from "./AdminLayout";
 import LoadingBar from "react-top-loading-bar";
 import toast, { Toaster } from "react-hot-toast";
