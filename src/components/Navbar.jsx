@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../utils/axiosInstance";
 import { Menu, X } from "lucide-react";
 import Sharda from "../assets/Sharda.png";
 
