@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
+import LoadingBar from "react-top-loading-bar";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminUploadImages() {
   const [categories, setCategories] = useState([]);
@@ -10,50 +12,94 @@ export default function AdminUploadImages() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
 
+  const [uploadingId, setUploadingId] = useState(null); // which variant is uploading
+
+  const loaderRef = useRef(null);
+
   /* ------------------ LOAD CATEGORIES ------------------ */
   useEffect(() => {
-    axios
-      .get("/api/admin/categories/all/list")
-      .then((res) => setCategories(res.data))
-      .catch(() => setCategories([]));
+    const fetchCategories = async () => {
+      try {
+        loaderRef.current.continuousStart();
+        const res = await axios.get("/api/admin/categories/all/list");
+        setCategories(res.data);
+        loaderRef.current.complete();
+      } catch {
+        loaderRef.current.complete();
+        toast.error("Failed to load categories.");
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   /* ------------------ LOAD PRODUCTS ------------------ */
   const loadProducts = async (cat) => {
     setSelectedProduct("");
     setVariants([]);
-    const res = await axios.get(`/api/admin/products/category/${cat}`);
-    setProducts(res.data);
+
+    try {
+      loaderRef.current.continuousStart();
+      const res = await axios.get(`/api/admin/products/category/${cat}`);
+      setProducts(res.data);
+      loaderRef.current.complete();
+    } catch {
+      loaderRef.current.complete();
+      toast.error("Failed to load products.");
+    }
   };
 
   /* ------------------ LOAD VARIANTS ------------------ */
   const loadVariants = async (productId) => {
-    const res = await axios.get(`/api/admin/products/${productId}`);
-    setVariants(res.data.variants || []);
+    try {
+      loaderRef.current.continuousStart();
+      const res = await axios.get(`/api/admin/products/${productId}`);
+      setVariants(res.data.variants || []);
+      loaderRef.current.complete();
+    } catch {
+      loaderRef.current.complete();
+      toast.error("Failed to load variants.");
+    }
   };
 
-  /* ------------------ UPLOAD IMAGE TO VARIANT ------------------ */
+  /* ------------------ UPLOAD IMAGE ------------------ */
   const uploadImage = async (variantId, file) => {
     if (!file) return;
 
-    const form = new FormData();
-    form.append("image", file);
+    try {
+      setUploadingId(variantId);
+      loaderRef.current.continuousStart();
 
-    await axios.post(
-      `/api/admin/products/${selectedProduct}/variant/${variantId}/image`,
-      form,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+      const form = new FormData();
+      form.append("image", file);
 
-    alert("Image uploaded!");
-    loadVariants(selectedProduct);
+      await axios.post(
+        `/api/admin/products/${selectedProduct}/variant/${variantId}/image`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+      toast.success("Image uploaded successfully!");
+      await loadVariants(selectedProduct);
+
+      setUploadingId(null);
+      loaderRef.current.complete();
+    } catch {
+      toast.error("Upload failed!");
+      setUploadingId(null);
+      loaderRef.current.complete();
+    }
   };
 
   return (
     <AdminLayout>
+      {/* Loader & Toast */}
+      <LoadingBar ref={loaderRef} color="#facc15" height={4} />
+      <Toaster position="top-center" />
+
       <h1 className="text-2xl font-bold mb-6">Upload / Replace Variant Images</h1>
 
-      {/* CATEGORY */}
+      {/* CATEGORY SELECT */}
       <select
         className="border p-2 rounded w-full md:w-1/2 mb-4"
         value={selectedCategory}
@@ -68,15 +114,15 @@ export default function AdminUploadImages() {
         ))}
       </select>
 
-      {/* PRODUCT */}
+      {/* PRODUCT SELECT */}
       <select
         className="border p-2 rounded w-full md:w-1/2 mb-4"
         value={selectedProduct}
+        disabled={!selectedCategory}
         onChange={(e) => {
           setSelectedProduct(e.target.value);
           loadVariants(e.target.value);
         }}
-        disabled={!selectedCategory}
       >
         <option value="">Select Product</option>
         {products.map((p) => (
@@ -84,18 +130,19 @@ export default function AdminUploadImages() {
         ))}
       </select>
 
-      {/* VARIANTS */}
+      {/* VARIANTS LIST */}
       {variants.length > 0 && (
         <div className="space-y-4 mt-6">
           {variants.map((v) => (
             <div
               key={v._id}
-              className="border p-4 bg-white rounded shadow flex items-center gap-4"
+              className="border p-4 bg-white rounded shadow flex items-center gap-6"
             >
               <div>
                 <strong>Code:</strong> {v.code}
               </div>
 
+              {/* Current image */}
               <div>
                 {v.imageUrl ? (
                   <img
@@ -103,17 +150,28 @@ export default function AdminUploadImages() {
                     className="w-24 h-24 object-cover border rounded"
                   />
                 ) : (
-                  <div className="w-24 h-24 border rounded flex items-center justify-center text-gray-500">
+                  <div className="w-24 h-24 flex items-center justify-center border rounded text-gray-500">
                     No Image
                   </div>
                 )}
               </div>
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => uploadImage(v._id, e.target.files[0])}
-              />
+              {/* Upload input */}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingId === v._id}
+                  onChange={(e) => uploadImage(v._id, e.target.files[0])}
+                  className={`${
+                    uploadingId === v._id ? "cursor-wait opacity-60" : ""
+                  }`}
+                />
+
+                {uploadingId === v._id && (
+                  <p className="text-sm text-yellow-600 mt-1">Uploading...</p>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
 import SearchSelect from "../../components/SearchSelect";
+import LoadingBar from "react-top-loading-bar";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminAddVariant() {
   const [categories, setCategories] = useState([]);
@@ -11,10 +13,12 @@ export default function AdminAddVariant() {
   const [selectedProduct, setSelectedProduct] = useState("");
 
   const [existingColumns, setExistingColumns] = useState([]);
-
   const [variants, setVariants] = useState([
     { code: "", image: null, columns: [{ key: "Code #", value: "" }] },
   ]);
+
+  const loaderRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   /* LOAD CATEGORIES */
   useEffect(() => {
@@ -26,82 +30,103 @@ export default function AdminAddVariant() {
 
   /* LOAD PRODUCTS WHEN CATEGORY SELECTED */
   const loadProducts = async (categoryName) => {
-    const res = await axios.get(`/api/admin/products/category/${categoryName}`);
-    setProducts(res.data);
+    try {
+      loaderRef.current.continuousStart();
+      const res = await axios.get(`/api/admin/products/category/${categoryName}`);
+      setProducts(res.data);
+      loaderRef.current.complete();
+    } catch {
+      toast.error("Failed to load products.");
+      loaderRef.current.complete();
+    }
   };
 
-  /* WHEN PRODUCT SELECTED → LOAD VARIANT COLUMN STRUCTURE */
+  /* WHEN PRODUCT SELECTED → LOAD COLUMN STRUCTURE */
   const handleProductSelect = async (productId) => {
     setSelectedProduct(productId);
 
-    const res = await axios.get(`/api/admin/products/${productId}`);
-    const product = res.data;
+    try {
+      loaderRef.current.continuousStart();
+      const res = await axios.get(`/api/admin/products/${productId}`);
+      const product = res.data;
 
-    if (product.variants.length > 0) {
-      const keys = Object.keys(product.variants[0].data || {});
-      setExistingColumns(keys);
+      if (product.variants.length > 0) {
+        const keys = Object.keys(product.variants[0].data || {});
+        setExistingColumns(keys);
 
-      setVariants([
-        {
-          code: "",
-          image: null,
-          columns: keys.map((key) => ({ key, value: "" })),
-        },
-      ]);
-    } else {
-      setExistingColumns(["Code #"]);
-      setVariants([
-        {
-          code: "",
-          image: null,
-          columns: [{ key: "Code #", value: "" }],
-        },
-      ]);
+        setVariants([
+          {
+            code: "",
+            image: null,
+            columns: keys.map((key) => ({ key, value: "" })),
+          },
+        ]);
+      } else {
+        setExistingColumns(["Code #"]);
+        setVariants([
+          { code: "", image: null, columns: [{ key: "Code #", value: "" }] },
+        ]);
+      }
+
+      loaderRef.current.complete();
+    } catch {
+      toast.error("Failed to load product details.");
+      loaderRef.current.complete();
     }
   };
 
   /* ADD VARIANT */
   const addVariant = () => {
     const newCols = existingColumns.map((key) => ({ key, value: "" }));
-
     setVariants([...variants, { code: "", image: null, columns: newCols }]);
   };
 
-  /* SAVE VARIANTS - DOT NOTATION LIKE ADDPRODUCT */
+  /* SAVE VARIANTS */
   const saveVariants = async () => {
-    if (!selectedProduct) return alert("Select a product first!");
-
-    const form = new FormData();
-    form.append("productId", selectedProduct);
-
-    variants.forEach((v, idx) => {
-      form.append(`variants.${idx}.code`, v.code);
-
-      v.columns.forEach((c) => {
-        const value = c.key === "Code #" ? v.code : c.value;
-        form.append(`variants.${idx}.data.${c.key}`, value);
-      });
-
-      if (v.image) {
-        form.append(`variants.${idx}.image`, v.image);
-      }
-    });
+    if (!selectedProduct) return toast.error("Select a product first!");
 
     try {
+      setIsLoading(true);
+      loaderRef.current.continuousStart();
+
+      const form = new FormData();
+      form.append("productId", selectedProduct);
+
+      variants.forEach((v, idx) => {
+        form.append(`variants.${idx}.code`, v.code);
+
+        v.columns.forEach((c) => {
+          const value = c.key === "Code #" ? v.code : c.value;
+          form.append(`variants.${idx}.data.${c.key}`, value);
+        });
+
+        if (v.image) {
+          form.append(`variants.${idx}.image`, v.image);
+        }
+      });
+
       await axios.post("/api/admin/products/add-variants", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("Variants added successfully!");
-      window.location.reload();
+      toast.success("Variants added successfully!");
+      loaderRef.current.complete();
+
+      setTimeout(() => window.location.reload(), 800);
     } catch (err) {
       console.error(err);
-      alert("Error adding variants");
+      toast.error("Error adding variants.");
+      loaderRef.current.complete();
+      setIsLoading(false);
     }
   };
 
   return (
     <AdminLayout>
+      {/* Loader + Toast */}
+      <LoadingBar ref={loaderRef} color="#facc15" height={4} />
+      <Toaster position="top-center" />
+
       <h1 className="text-3xl font-bold mb-4">Add Variant(s)</h1>
 
       {/* CATEGORY DROPDOWN */}
@@ -142,9 +167,7 @@ export default function AdminAddVariant() {
               const updated = [...variants];
               updated[idx].code = e.target.value;
 
-              const codeCol = updated[idx].columns.find(
-                (c) => c.key === "Code #"
-              );
+              const codeCol = updated[idx].columns.find((c) => c.key === "Code #");
               if (codeCol) codeCol.value = e.target.value;
 
               setVariants(updated);
@@ -183,9 +206,12 @@ export default function AdminAddVariant() {
 
       <button
         onClick={saveVariants}
-        className="mt-6 bg-purple-600 text-white px-6 py-3 rounded"
+        disabled={isLoading}
+        className={`mt-6 px-6 py-3 rounded text-white font-semibold transition ${
+          isLoading ? "bg-purple-400 cursor-wait" : "bg-purple-600 hover:bg-purple-700"
+        }`}
       >
-        Save Variants
+        {isLoading ? "Saving Variants..." : "Save Variants"}
       </button>
     </AdminLayout>
   );

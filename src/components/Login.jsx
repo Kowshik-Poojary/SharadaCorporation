@@ -156,7 +156,7 @@ const Login = ({ setUser, loggedOut }) => {
 
   setTimeout(() => {
     setSuccessMessage("");
-    navigate(isAdmin ? "/adminpanel" : "/");
+    navigate(isAdmin ? "/admin" : "/");
   }, 1200);
 }
  else {

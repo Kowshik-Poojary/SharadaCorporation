@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react"; // icon package (install with: npm install lucide-react)
+import "./CategorySlider.css"; // FIXED import (remove .css from name)
+
+
+
+/* Your category imports stay the same */
+
 import NewArrival from "../assets/NewArrival.png";
 import Disposables from "../assets/Disposable.png";
 import SugarcaneBaggasse from "../assets/SugarcaneBaggasse.png";
@@ -31,215 +37,112 @@ import PizzaEquipments from "../assets/PizzaEquipments.png";
 
 
 const categories = [
-  {
-    name: "New Arrivals",
-    img: NewArrival,
-    link: "/products/new-arrivals",
-  },
-  {
-    name: "Disposables",
-    img: Disposables,
-    link: "/products/disposables",
-  },
-  {
-    name: "Sugarcane Baggasse",
-    img: SugarcaneBaggasse,
-    link: "/products/sugarcane-baggasse",
-  },
-  {
-    name: "Rice Husk",
-    img: RiceHusk,
-    link: "/products/rice-husk",
-  },
-  {
-    name: "Cookware",
-    img: Cookware,
-    link: "/products/cookware",
-  },
-  {
-    name: "Kitchen Textile",
-    img: KitchenTextile,
-    link: "/products/kitchen-textile",
-  },
-  {
-    name: "Wooden Items",
-    img: WoodenItems,
-    link: "/products/wooden-items",
-  },
-  {
-    name: "Baskets",
-    img: Baskets,
-    link: "/products/baskets",
-  },
-  {
-    name: "Cake Stand & Display Items",
-    img: CakeStandDisplayItems,
-    link: "/products/cake-stand-display-items",
-  },
-  {
-    name: "Chip Cones",
-    img: ChipCones,
-    link: "/products/chip-cones",
-  },
-  {
-    name: "Tabletop",
-    img: Tabletop,
-    link: "/products/tabletop",
-  },
-  {
-    name: "Mini Presentation Items",
-    img: MiniPresentationItems,
-    link: "/products/mini-presentation-items",
-  },
-  {
-    name: "Presentation Serverware",
-    img: PresentationServerware,
-    link: "/products/presentation-serverware",
-  },
-  {
-    name: "Salt Pepper Shakers",
-    img: SaltPepperShakers,
-    link: "/products/salt-pepper-shakers",
-  },
-  {
-    name: "Bar Accessories",
-    img: BarAccessories,
-    link: "/products/bar-accessories",
-  },
-  {
-    name: "Ice Wine Bucket",
-    img: IceWineBucket,
-    link: "/products/ice-wine-bucket",
-  },
-  {
-    name: "Wine Bucket Holder",
-    img: WineBucketHolder,
-    link: "/products/wine-bucket-holder",
-  },
-  {
-    name: "Cocktail Shaker",
-    img: CocktailShaker,
-    link: "/products/cocktail-shaker",
-  },
-  {
-    name: "Trays",
-    img: Trays,
-    link: "/products/trays",
-  },
-  {
-    name: "Kitchen Equipments",
-    img: KitchenEquipments,
-    link: "/products/kitchen-equipments",
-  },
-  {
-    name: "Kitchen Cutlery",
-    img: KitchenCutlery,
-    link: "/products/kitchen-cutlery",
-  },
-  {
-    name: "Range of Bowls",
-    img: RangeOfBowls,
-    link: "/products/range-of-bowls",
-  },
-  {
-    name: "Preparation Utensils",
-    img: PreparationUtensils,
-    link: "/products/preparation-utensils",
-  },
-  {
-    name: "Food Rings",
-    img: FoodRings,
-    link: "/products/food-rings",
-  },
-  {
-    name: "Whisks",
-    img: Whisks,
-    link: "/products/whisks",
-  },
-  {
-    name: "Tongs",
-    img: Tongs,
-    link: "/products/tongs",
-  },
-  {
-    name: "Pizza Equipments",
-    img: PizzaEquipments,
-    link: "/products/pizza-equipments",
-  },
+  { name: "New Arrivals", img: NewArrival, link: "/products/new-arrivals" },
+  { name: "Disposables", img: Disposables, link: "/products/disposables" },
+  { name: "Sugarcane Baggasse", img: SugarcaneBaggasse, link: "/products/sugarcane-baggasse" },
+  { name: "Rice Husk", img: RiceHusk, link: "/products/rice-husk" },
+  { name: "Cookware", img: Cookware, link: "/products/cookware" },
+  { name: "Kitchen Textile", img: KitchenTextile, link: "/products/kitchen-textile" },
+  { name: "Wooden Items", img: WoodenItems, link: "/products/wooden-items" },
+  { name: "Baskets", img: Baskets, link: "/products/baskets" },
+  { name: "Cake Stand & Display Items", img: CakeStandDisplayItems, link: "/products/cake-stand-display-items" },
+  { name: "Chip Cones", img: ChipCones, link: "/products/chip-cones" },
+  { name: "Tabletop", img: Tabletop, link: "/products/tabletop" },
+  { name: "Mini Presentation Items", img: MiniPresentationItems, link: "/products/mini-presentation-items" },
+  { name: "Presentation Serverware", img: PresentationServerware, link: "/products/presentation-serverware" },
+  { name: "Salt Pepper Shakers", img: SaltPepperShakers, link: "/products/salt-pepper-shakers" },
+  { name: "Bar Accessories", img: BarAccessories, link: "/products/bar-accessories" },
+  { name: "Ice Wine Bucket", img: IceWineBucket, link: "/products/ice-wine-bucket" },
+  { name: "Wine Bucket Holder", img: WineBucketHolder, link: "/products/wine-bucket-holder" },
+  { name: "Cocktail Shaker", img: CocktailShaker, link: "/products/cocktail-shaker" },
+  { name: "Trays", img: Trays, link: "/products/trays" },
+  { name: "Kitchen Equipments", img: KitchenEquipments, link: "/products/kitchen-equipments" },
+  { name: "Kitchen Cutlery", img: KitchenCutlery, link: "/products/kitchen-cutlery" },
+  { name: "Range of Bowls", img: RangeOfBowls, link: "/products/range-of-bowls" },
+  { name: "Preparation Utensils", img: PreparationUtensils, link: "/products/preparation-utensils" },
+  { name: "Food Rings", img: FoodRings, link: "/products/food-rings" },
+  { name: "Whisks", img: Whisks, link: "/products/whisks" },
+  { name: "Tongs", img: Tongs, link: "/products/tongs" },
+  { name: "Pizza Equipments", img: PizzaEquipments, link: "/products/pizza-equipments" },
 ];
+
+
+
+
 
 
 const CategorySlider = () => {
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
+  const touchStart = useRef(0);
+  const touchEnd = useRef(0);
 
-  // Auto slide every 5s
+  const nextSlide = () => setCurrent((prev) => (prev + 1) % categories.length);
+  const prevSlide = () =>
+    setCurrent((prev) => (prev === 0 ? categories.length - 1 : prev - 1));
+
+  // Auto slide every 4 sec
   useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000);
+    const timer = setInterval(nextSlide, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [current]);
-
-  const nextSlide = () => {
-    setCurrent((prev) => (prev + 1) % categories.length);
+  // Swipe handling
+  const handleTouchStart = (e) => {
+    touchStart.current = e.changedTouches[0].clientX;
   };
 
-  const prevSlide = () => {
-    setCurrent((prev) =>
-      prev === 0 ? categories.length - 1 : prev - 1
-    );
+  const handleTouchEnd = (e) => {
+    touchEnd.current = e.changedTouches[0].clientX;
+    const distance = touchStart.current - touchEnd.current;
+
+    if (distance > 50) nextSlide();
+    if (distance < -50) prevSlide();
   };
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="premium-slider-container">
       {/* Slides */}
       <div
-        className="flex transition-transform duration-700 ease-in-out"
+        className="premium-slides"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
         {categories.map((cat, index) => (
           <div
+            className={`premium-slide ${index === current ? "active" : ""}`}
             key={index}
-            className="w-full h-auto object-cover flex-shrink-0 cursor-pointer relative"
             onClick={() => navigate(cat.link)}
           >
-            <img
-              src={cat.img}
-              alt={cat.name}
-              className="w-full h-auto object-cover"
-            />
+            <img src={cat.img} alt={cat.name} className="premium-slide-img" />
+
+            {/* Gradient overlay */}
+            <div className="premium-overlay"></div>
+
+            {/* Category Name */}
+            <div className="premium-title">{cat.name}</div>
           </div>
         ))}
       </div>
 
-      {/* Left button */}
-      <button
-        onClick={prevSlide}
-        className="absolute top-1/2 left-5 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-3 rounded-full hover:bg-opacity-70"
-      >
-        <ChevronLeft size={28} />
+      {/* Navigation arrows */}
+      <button className="premium-arrow left" onClick={prevSlide}>
+        <ChevronLeft size={24} />
       </button>
 
-      {/* Right button */}
-      <button
-        onClick={nextSlide}
-        className="absolute top-1/2 right-5 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-3 rounded-full hover:bg-opacity-70"
-      >
-        <ChevronRight size={28} />
+      <button className="premium-arrow right" onClick={nextSlide}>
+        <ChevronRight size={24} />
       </button>
 
-      {/* Dots */}
-      <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-3">
+      {/* Pagination bars */}
+      <div className="premium-dots">
         {categories.map((_, idx) => (
-          <button
+          <div
             key={idx}
+            className={`premium-dot ${current === idx ? "active" : ""}`}
             onClick={() => setCurrent(idx)}
-            className={`w-4 h-4 rounded-full ${
-              current === idx ? "bg-white" : "bg-gray-500"
-            }`}
-          ></button>
+          ></div>
         ))}
       </div>
     </div>

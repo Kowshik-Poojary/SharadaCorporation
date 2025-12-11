@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
+import LoadingBar from "react-top-loading-bar";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminAddProduct() {
   const [categories, setCategories] = useState([]);
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loaderRef = useRef(null);
 
   const [variants, setVariants] = useState([
     {
@@ -44,49 +49,55 @@ export default function AdminAddProduct() {
   };
 
   const saveProduct = async () => {
-    if (!productName || !category) return alert("Fill all fields");
+    if (!productName || !category)
+      return toast.error("Please fill all fields.");
 
     const form = new FormData();
-
     form.append("name", productName);
     form.append("category", category);
 
     variants.forEach((v, idx) => {
-      // CODE
       form.append(`variants.${idx}.code`, v.code);
-      
 
-      // COLUMNS
       v.columns.forEach((col) => {
         const value = col.key === "Code #" ? v.code : col.value;
         form.append(`variants.${idx}.data.${col.key}`, value);
       });
 
-      // IMAGE
       if (v.image) {
         form.append(`variants.${idx}.image`, v.image);
       }
     });
 
     try {
+      setIsLoading(true);
+      loaderRef.current.continuousStart();
+
       await axios.post("/api/admin/products/add-with-variants", form, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
-      alert("Product added successfully!");
-      window.location.reload();
+      toast.success("Product added successfully!");
+      loaderRef.current.complete();
+      setTimeout(() => window.location.reload(), 800);
     } catch (err) {
       console.error(err);
-      alert("Error adding product");
+      toast.error("Error adding product!");
+      loaderRef.current.complete();
+      setIsLoading(false);
     }
   };
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl mb-6">Add New Product</h1>
+      {/* Loader + Toast */}
+      <LoadingBar color="#facc15" height={4} ref={loaderRef} />
+      <Toaster position="top-center" />
+
+      <h1 className="text-3xl mb-6 font-bold">Add New Product</h1>
 
       <select
-        className="border p-2 w-full mb-4 text-black"
+        className="border p-2 w-full mb-4 text-black rounded"
         value={category}
         onChange={(e) => setCategory(e.target.value)}
       >
@@ -99,25 +110,28 @@ export default function AdminAddProduct() {
       </select>
 
       <input
-        className="border p-2 w-full mb-4"
+        className="border p-2 w-full mb-4 rounded"
         placeholder="Product Name"
         value={productName}
         onChange={(e) => setProductName(e.target.value)}
       />
 
-      <button
-        onClick={addVariant}
-        className="bg-green-600 text-white px-4 py-2 rounded"
-      >
-        + Add Variant
-      </button>
+      {/* Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={addVariant}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          + Add Variant
+        </button>
 
-      <button
-        onClick={addColumn}
-        className="ml-2 bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        + Add Column
-      </button>
+        <button
+          onClick={addColumn}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          + Add Column
+        </button>
+      </div>
 
       <div className="mt-6 space-y-6">
         {variants.map((v, i) => (
@@ -125,7 +139,7 @@ export default function AdminAddProduct() {
             <h2 className="text-xl font-semibold">Variant {i + 1}</h2>
 
             <input
-              className="border p-2 w-full mt-2"
+              className="border p-2 w-full mt-2 rounded"
               placeholder="Code"
               value={v.code}
               onChange={(e) => {
@@ -154,7 +168,7 @@ export default function AdminAddProduct() {
             {v.columns.map((col, cIdx) => (
               <div key={cIdx} className="flex gap-3 mt-3">
                 <input
-                  className="border p-2 w-1/3"
+                  className="border p-2 w-1/3 rounded"
                   value={col.key}
                   disabled={i !== 0 || col.key === "Code #"}
                   onChange={(e) => {
@@ -165,7 +179,7 @@ export default function AdminAddProduct() {
                 />
 
                 <input
-                  className="border p-2 w-2/3"
+                  className="border p-2 w-2/3 rounded"
                   placeholder="Value"
                   value={col.key === "Code #" ? v.code : col.value}
                   disabled={col.key === "Code #"}
@@ -183,9 +197,12 @@ export default function AdminAddProduct() {
 
       <button
         onClick={saveProduct}
-        className="mt-6 bg-purple-600 text-white px-6 py-3 rounded"
+        disabled={isLoading}
+        className={`mt-6 px-6 py-3 rounded text-white font-semibold transition ${
+          isLoading ? "bg-purple-400 cursor-wait" : "bg-purple-600 hover:bg-purple-700"
+        }`}
       >
-        Save Product
+        {isLoading ? "Saving Product..." : "Save Product"}
       </button>
     </AdminLayout>
   );

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import AdminLayout from "./AdminLayout";
 import SearchSelect from "../../components/SearchSelect";
+import LoadingBar from "react-top-loading-bar";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function AdminDeleteVariant() {
   const [categories, setCategories] = useState([]);
@@ -12,30 +14,58 @@ export default function AdminDeleteVariant() {
   const [selectedProduct, setSelectedProduct] = useState("");
 
   const [selectedVariants, setSelectedVariants] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loaderRef = useRef(null);
 
   /* ------------------ LOAD CATEGORIES ------------------ */
   useEffect(() => {
-    axios
-      .get("/api/products/all/list")
-      .then((res) => setCategories(res.data))
-      .catch(() => setCategories([]));
+    const loadCategories = async () => {
+      try {
+        loaderRef.current.continuousStart();
+        const res = await axios.get("/api/products/all/list");
+        setCategories(res.data);
+        loaderRef.current.complete();
+      } catch {
+        loaderRef.current.complete();
+        toast.error("Failed to load categories.");
+      }
+    };
+
+    loadCategories();
   }, []);
 
   /* ------------------ LOAD PRODUCTS ------------------ */
   const loadProducts = async (categoryName) => {
     setSelectedProduct("");
     setVariants([]);
+    setSelectedVariants([]);
 
-    const res = await axios.get(`/api/admin/products/category/${categoryName}`);
-    setProducts(res.data);
+    try {
+      loaderRef.current.continuousStart();
+      const res = await axios.get(`/api/admin/products/category/${categoryName}`);
+      setProducts(res.data);
+      loaderRef.current.complete();
+    } catch {
+      loaderRef.current.complete();
+      toast.error("Failed to load products.");
+    }
   };
 
   /* ------------------ LOAD VARIANTS ------------------ */
   const loadVariants = async (productId) => {
     setSelectedProduct(productId);
+    setSelectedVariants([]);
 
-    const res = await axios.get(`/api/admin/products/${productId}`);
-    setVariants(res.data.variants || []);
+    try {
+      loaderRef.current.continuousStart();
+      const res = await axios.get(`/api/admin/products/${productId}`);
+      setVariants(res.data.variants || []);
+      loaderRef.current.complete();
+    } catch {
+      loaderRef.current.complete();
+      toast.error("Failed to load variants.");
+    }
   };
 
   /* ------------------ SELECT / DESELECT VARIANT ------------------ */
@@ -50,34 +80,45 @@ export default function AdminDeleteVariant() {
   /* ------------------ DELETE SELECTED VARIANTS ------------------ */
   const deleteSelected = async () => {
     if (selectedVariants.length === 0)
-      return alert("Select at least one variant to delete.");
+      return toast.error("Select at least one variant to delete.");
 
-    if (!window.confirm("Are you sure you want to delete selected variants?"))
+    if (!window.confirm("Are you sure you want to delete these variants?"))
       return;
 
     try {
+      setIsLoading(true);
+      loaderRef.current.continuousStart();
+
       for (const vid of selectedVariants) {
         await axios.delete(
           `/api/admin/products/${selectedProduct}/variants/${vid}`
         );
       }
 
-      alert("Deleted successfully!");
+      toast.success("Variants deleted successfully!");
 
-      // Refresh UI
-      loadVariants(selectedProduct);
+      await loadVariants(selectedProduct);
       setSelectedVariants([]);
+
+      loaderRef.current.complete();
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to delete variants");
+      toast.error("Failed to delete variants.");
+      loaderRef.current.complete();
+      setIsLoading(false);
     }
   };
 
   return (
     <AdminLayout>
+      {/* Loader + Toast */}
+      <LoadingBar ref={loaderRef} color="#facc15" height={4} />
+      <Toaster position="top-center" />
+
       <h1 className="text-3xl font-bold mb-6">Delete Variant(s)</h1>
 
-      {/* CATEGORY DROPDOWN */}
+      {/* CATEGORY SELECT */}
       <SearchSelect
         label="Select Category"
         options={categories.map((c) => ({ label: c.trim(), value: c.trim() }))}
@@ -88,7 +129,7 @@ export default function AdminDeleteVariant() {
         }}
       />
 
-      {/* PRODUCT DROPDOWN */}
+      {/* PRODUCT SELECT */}
       <SearchSelect
         label="Select Product"
         options={products.map((p) => ({ label: p.name, value: p._id }))}
@@ -100,9 +141,14 @@ export default function AdminDeleteVariant() {
       {variants.length > 0 && (
         <button
           onClick={deleteSelected}
-          className="bg-red-600 text-white px-6 py-2 rounded shadow mb-4 hover:bg-red-700 transition"
+          disabled={isLoading}
+          className={`px-6 py-2 rounded text-white shadow mb-4 transition ${
+            isLoading
+              ? "bg-red-300 cursor-wait"
+              : "bg-red-600 hover:bg-red-700"
+          }`}
         >
-          Delete Selected Variants
+          {isLoading ? "Deleting..." : "Delete Selected Variants"}
         </button>
       )}
 
@@ -118,10 +164,11 @@ export default function AdminDeleteVariant() {
               type="checkbox"
               checked={selectedVariants.includes(v._id)}
               onChange={() => toggleVariant(v._id)}
+              disabled={isLoading}
               className="mt-2 w-5 h-5"
             />
 
-            {/* Image */}
+            {/* Variant Image */}
             <img
               src={v.imageUrl || "/placeholder.webp"}
               alt="variant"

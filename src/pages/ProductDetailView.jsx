@@ -148,7 +148,7 @@ export default function ProductDetailView() {
             Go to Wishlist
           </Link>
 
-          <h2 className="text-xl font-semibold mb-3">Available Variants</h2>
+          
 
           {/* VARIANTS TABLE */}
           <div className="overflow-x-auto bg-white rounded-lg shadow">
