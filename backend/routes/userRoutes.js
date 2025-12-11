@@ -45,7 +45,9 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(400).json({ message: "Account not found. Please Sign Up." });
+      return res
+        .status(400)
+        .json({ message: "Account not found. Please Sign Up." });
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: "Invalid credentials" });
@@ -70,12 +72,16 @@ router.post("/google-login", async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user)
-      return res.status(400).json({ message: "Account not found. Please Sign Up." });
+      return res
+        .status(400)
+        .json({ message: "Account not found. Please Sign Up." });
 
     const token = generateToken(user);
     res.json({ message: "Google login successful", token, user });
   } catch (err) {
-    res.status(500).json({ message: "Google login failed", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Google login failed", error: err.message });
   }
 });
 
@@ -103,7 +109,9 @@ router.post("/google-signup", async (req, res) => {
       user,
     });
   } catch (err) {
-    res.status(500).json({ message: "Google signup failed", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Google signup failed", error: err.message });
   }
 });
 
@@ -120,12 +128,18 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
 
     // Send OTP via email
+    // use this in /routes/wishlist.js and catalogue route
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // SSL
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        pass: process.env.EMAIL_PASS, // App password
       },
+      connectionTimeout: 10_000, // 10s
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
 
     await transporter.sendMail({
@@ -169,7 +183,9 @@ router.post("/reset-password", async (req, res) => {
 
     res.json({ message: "Password reset successful." });
   } catch (err) {
-    res.status(500).json({ message: "Password reset failed.", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Password reset failed.", error: err.message });
   }
 });
 
@@ -185,7 +201,11 @@ router.post("/api/users/forgot-password", async (req, res) => {
   await user.save();
 
   // Send email
-  await sendEmail(email, "Password Reset Code", `Your code is ${verificationCode}`);
+  await sendEmail(
+    email,
+    "Password Reset Code",
+    `Your code is ${verificationCode}`
+  );
 
   res.json({ message: "Verification code sent to your email" });
 });
@@ -205,6 +225,5 @@ router.post("/api/users/reset-password", async (req, res) => {
 
   res.json({ message: "Password reset successful" });
 });
-
 
 export default router;

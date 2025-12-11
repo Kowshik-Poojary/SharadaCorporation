@@ -12,25 +12,28 @@ router.post("/request", async (req, res) => {
 
   try {
     // Transporter setup (use your app Gmail)
-   const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
+    // use this in /routes/wishlist.js and catalogue route
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // SSL
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // App password
+      },
+      connectionTimeout: 10_000, // 10s
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
+    });
 
     // Mail options
     const mailOptions = {
-  from: `"Catalogue Request" <${process.env.EMAIL_USER}>`,
-  to: process.env.EMAIL_USER,
-  subject: "New Catalogue Request",
-  text: `A user has requested the catalogue.\n\nUser Email: ${userEmail}`,
-  replyTo: userEmail,
-};
+      from: `"Catalogue Request" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      subject: "New Catalogue Request",
+      text: `A user has requested the catalogue.\n\nUser Email: ${userEmail}`,
+      replyTo: userEmail,
+    };
 
     await transporter.sendMail(mailOptions);
     res.json({ message: "Catalogue request sent successfully!" });

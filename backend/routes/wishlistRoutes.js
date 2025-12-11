@@ -13,7 +13,8 @@ router.post("/add", async (req, res) => {
   try {
     const { userId, productId, variantCode } = req.body;
     const exists = await Wishlist.findOne({ userId, productId, variantCode });
-    if (exists) return res.json({ success: true, message: "Already in wishlist" });
+    if (exists)
+      return res.json({ success: true, message: "Already in wishlist" });
 
     await Wishlist.create({ userId, productId, variantCode });
     res.json({ success: true, message: "Added to wishlist" });
@@ -101,17 +102,19 @@ router.post("/enquire", async (req, res) => {
     htmlBody += `<p>Regards,<br/>Sharda Corporation</p>`;
 
     // Configure transporter (Gmail)
+    // use this in /routes/wishlist.js and catalogue route
     const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // SSL
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // App password
+      },
+      connectionTimeout: 10_000, // 10s
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
+    });
 
     // verify transporter (helps debug SMTP auth issues)
     try {

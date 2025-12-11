@@ -13,14 +13,18 @@ router.post("/", async (req, res) => {
   }
 
   try {
+    c; // use this in /routes/wishlist.js and catalogue route
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
+      port: 465,
+      secure: true, // SSL
       auth: {
-        user: "shardacorporation.334@gmail.com",
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, // App password
       },
+      connectionTimeout: 10_000, // 10s
+      greetingTimeout: 10_000,
+      socketTimeout: 10_000,
     });
 
     const mailOptions = {
