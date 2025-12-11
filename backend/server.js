@@ -18,7 +18,10 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: '*', // or your frontend URL for production
+  origin: [
+    "http://localhost:5173",
+    "https://shardacorporation.netlify.app"
+  ], // or your frontend URL for production
   credentials: true
 }));
 

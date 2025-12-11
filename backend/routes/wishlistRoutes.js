@@ -42,7 +42,7 @@ router.get("/:userId", async (req, res) => {
         productId: product._id.toString(),
         productName: product.name,
         variantCode: item.variantCode,
-        imageUrl: variant.imageUrl || variant.data.imageUrl || "",
+        imageUrl: variant.imageUrl || variant.data.imageUrl || null,
         variantDetails: variant.data,
       });
     }
@@ -102,12 +102,16 @@ router.post("/enquire", async (req, res) => {
 
     // Configure transporter (Gmail)
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+
 
     // verify transporter (helps debug SMTP auth issues)
     try {

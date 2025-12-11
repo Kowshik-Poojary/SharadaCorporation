@@ -103,33 +103,43 @@ const Login = ({ setUser, loggedOut }) => {
 
   // ---------- SIGNUP ----------
   const handleSignup = async () => {
-    if (!name.trim()) return setMessage("Full name is required.");
-    if (!emailRegex.test(email))
-      return setMessage("Please enter a valid email address.");
-    if (!passwordRegex.test(password))
-      return setMessage(
-        "Password must contain 1 uppercase, 1 number, 1 special character, and be at least 8 characters long."
-      );
+  if (!name.trim()) return setMessage("Full name is required.");
+  if (!emailRegex.test(email))
+    return setMessage("Please enter a valid email address.");
+  if (!passwordRegex.test(password))
+    return setMessage(
+      "Password must contain 1 uppercase, 1 number, 1 special character, and be at least 8 characters long."
+    );
 
-    try {
-      const res = await fetch(`${BaseUrl}/api/users/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-      const data = await res.json();
+  try {
+    const res = await fetch(`${BaseUrl}/api/users/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
 
-      if (res.ok) {
-        setSuccessMessage("Signup successful! You can now login.");
-        setIsSignup(false);
-        setTimeout(() => setSuccessMessage(""), 3000);
-      } else {
-        setMessage(data.message || "Signup failed.");
-      }
-    } catch {
-      setMessage("Signup failed. Try again.");
+    if (res.ok) {
+      // SUCCESS MESSAGE
+      setSuccessMessage("Signup successful! Please login to continue.");
+
+      // Switch to LOGIN page
+      setIsSignup(false);
+
+      // Clear the signup form fields
+      setName("");
+      setEmail("");
+      setPassword("");
+
+      // Auto-hide success message
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } else {
+      setMessage(data.message || "Signup failed.");
     }
-  };
+  } catch {
+    setMessage("Signup failed. Try again.");
+  }
+};
 
   // ---------- LOGIN ----------
   const handleLogin = async () => {
@@ -197,28 +207,34 @@ const Login = ({ setUser, loggedOut }) => {
 
   // ---------- GOOGLE SIGNUP ----------
   const handleGoogleSignup = async (credentialResponse) => {
-    try {
-      const res = await fetch(`${BaseUrl}/api/users/google-signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ credential: credentialResponse.credential }),
-      });
-      const data = await res.json();
+  try {
+    const res = await fetch(`${BaseUrl}/api/users/google-signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential: credentialResponse.credential }),
+    });
 
-      if (res.ok) {
-        setUser(data.user);
-        setSuccessMessage("Successfully signed up with Google!");
-        setTimeout(() => {
-          setSuccessMessage("");
-          navigate("/");
-        }, 1200);
-      } else {
-        setMessage(data.message || "Google signup failed.");
-      }
-    } catch {
-      setMessage("Google signup failed.");
+    const data = await res.json();
+
+    if (res.ok) {
+      // Show success message
+      setSuccessMessage("Signup successful! Please login to continue.");
+
+      // Switch to login screen
+      setIsSignup(false);
+
+      // Clear any old messages
+      setMessage("");
+
+      // Auto-hide success message
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } else {
+      setMessage(data.message || "Google signup failed.");
     }
-  };
+  } catch {
+    setMessage("Google signup failed.");
+  }
+};
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100 relative">

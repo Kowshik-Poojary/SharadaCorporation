@@ -12,25 +12,25 @@ router.post("/request", async (req, res) => {
 
   try {
     // Transporter setup (use your app Gmail)
-    const transporter = nodemailer.createTransport({
+   const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
-  secure: false, // use STARTTLS
+  secure: false,
   auth: {
-    user: "shardacorporation.334@gmail.com", // ✅ your sender Gmail
-    pass: process.env.EMAIL_PASS, // ✅ 16-digit Gmail App Password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
 
     // Mail options
     const mailOptions = {
-      from: `"Catalogue Request" <shardacorporation334@gmail.com>`,
-      to: "shardacorporation334@gmail.com", // receiver (your main inbox)
-      subject: "New Catalogue Request",
-      text: `A user has requested the catalogue.\n\nUser Email: ${userEmail}`,
-      replyTo: userEmail, // allows you to reply directly to the user
-    };
+  from: `"Catalogue Request" <${process.env.EMAIL_USER}>`,
+  to: process.env.EMAIL_USER,
+  subject: "New Catalogue Request",
+  text: `A user has requested the catalogue.\n\nUser Email: ${userEmail}`,
+  replyTo: userEmail,
+};
 
     await transporter.sendMail(mailOptions);
     res.json({ message: "Catalogue request sent successfully!" });
