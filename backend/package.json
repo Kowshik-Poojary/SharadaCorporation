@@ -8,11 +8,17 @@
   "dependencies": {
     "i": "^0.3.7",
     "nodemailer": "^7.0.11",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "axios": "^1.12.2",
+    "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "google-auth-library": "^10.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
+    "mongoose": "^8.19.0",
+    "multer": "^2.0.2"
   }
-
-  
-  
-
-
 }
