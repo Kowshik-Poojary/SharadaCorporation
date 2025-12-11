@@ -24,7 +24,7 @@ import Contact from "./components/Contact";
 
 import ProductCatalogue from "./pages/ProductCatalogue";
 import ProductDetailView from "./pages/ProductDetailView";
-import WishlistPage from "./components/Wishlistpage";
+import WishlistPage from "./components/WishlistPage";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
