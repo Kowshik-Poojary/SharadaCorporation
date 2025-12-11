@@ -7,6 +7,8 @@ import toast, { Toaster } from "react-hot-toast";
 export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
+  const [newImageFile, setNewImageFile] = useState(null);
+  const [newImagePreview, setNewImagePreview] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const loaderRef = useRef(null);
@@ -23,7 +25,6 @@ export default function AdminCategories() {
       setCategories(res.data);
       loaderRef.current.complete();
     } catch {
-      setCategories([]);
       loaderRef.current.complete();
       toast.error("Failed to load categories");
     }
@@ -37,98 +38,134 @@ export default function AdminCategories() {
       setIsLoading(true);
       loaderRef.current.continuousStart();
 
-      await axios.post("/api/admin/categories", { name });
+      const form = new FormData();
+      form.append("name", name);
+      if (newImageFile) form.append("image", newImageFile);
+
+      await axios.post("/api/admin/categories", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       setName("");
-      toast.success("Category added!");
-      await loadCategories();
+      setNewImageFile(null);
+      setNewImagePreview("");
 
+      toast.success("Category added!");
+      loadCategories();
       loaderRef.current.complete();
       setIsLoading(false);
     } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to add category");
       loaderRef.current.complete();
       setIsLoading(false);
+      toast.error("Failed to add category",err);
     }
   };
 
-  /* ------------------ EDIT CATEGORY ------------------ */
-  const editCategory = async (id, oldName) => {
-    const newName = prompt("Enter new category name", oldName);
-
-    if (!newName?.trim()) return toast.error("Name cannot be empty");
+  /* ------------------ UPLOAD/REPLACE CATEGORY IMAGE ------------------ */
+  const uploadCategoryImage = async (id, file) => {
+    if (!file) return;
 
     try {
-      setIsLoading(true);
       loaderRef.current.continuousStart();
 
+      const form = new FormData();
+      form.append("image", file);
+
+      await axios.post(`/api/admin/categories/${id}/image`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast.success("Image uploaded!");
+      loadCategories();
+      loaderRef.current.complete();
+    } catch {
+      loaderRef.current.complete();
+      toast.error("Upload failed");
+    }
+  };
+
+  /* ------------------ EDIT CATEGORY NAME ------------------ */
+  const editCategory = async (id, oldName) => {
+    const newName = prompt("Enter new category name", oldName);
+    if (!newName?.trim()) return;
+
+    try {
+      loaderRef.current.continuousStart();
       await axios.put(`/api/admin/categories/${id}`, { name: newName });
-
-      toast.success("Category updated!");
-      await loadCategories();
-
+      toast.success("Updated!");
+      loadCategories();
       loaderRef.current.complete();
-      setIsLoading(false);
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to update category");
+    } catch {
       loaderRef.current.complete();
-      setIsLoading(false);
+      toast.error("Failed to update");
     }
   };
 
   /* ------------------ DELETE CATEGORY ------------------ */
   const deleteCategory = async (id, name, productCount) => {
-    if (productCount > 0) {
-      return toast.error(
-        `Cannot delete "${name}". It has ${productCount} products.`
-      );
-    }
+    if (productCount > 0)
+      return toast.error(`Cannot delete, ${productCount} products exist.`);
 
     if (!window.confirm(`Delete category "${name}"?`)) return;
 
     try {
-      setIsLoading(true);
       loaderRef.current.continuousStart();
-
       await axios.delete(`/api/admin/categories/${id}`);
-
-      toast.success("Category deleted");
-      await loadCategories();
-
+      toast.success("Deleted");
+      loadCategories();
       loaderRef.current.complete();
-      setIsLoading(false);
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Failed to delete");
+    } catch {
       loaderRef.current.complete();
-      setIsLoading(false);
+      toast.error("Failed to delete");
     }
   };
 
   return (
     <AdminLayout>
-      {/* Loading bar + Toast */}
       <LoadingBar ref={loaderRef} color="#facc15" height={4} />
       <Toaster position="top-center" />
 
       <h1 className="text-2xl font-bold mb-6">Manage Categories</h1>
 
       {/* ADD CATEGORY */}
-      <div className="flex gap-2 mb-4">
+      <div className="bg-white p-4 rounded shadow mb-6 flex flex-col md:flex-row items-center gap-4">
+        
         <input
-          className="border p-2 w-64 rounded"
+          className="border p-2 rounded w-full md:w-64"
           placeholder="New Category Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
+        <label className="cursor-pointer">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              setNewImageFile(file);
+              setNewImagePreview(URL.createObjectURL(file));
+            }}
+          />
+          <div className="px-3 py-2 bg-gray-100 border rounded">Choose Image</div>
+        </label>
+
+        {newImagePreview ? (
+          <img
+            src={newImagePreview}
+            className="w-20 h-20 rounded object-cover border"
+          />
+        ) : (
+          <div className="w-20 h-20 border rounded flex items-center justify-center text-gray-500">
+            No Image
+          </div>
+        )}
+
         <button
           onClick={addCategory}
           disabled={isLoading}
-          className={`px-4 py-2 rounded text-white ${
-            isLoading
-              ? "bg-blue-400 cursor-wait"
-              : "bg-blue-600 hover:bg-blue-700"
-          }`}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           {isLoading ? "Adding..." : "Add Category"}
         </button>
@@ -139,37 +176,60 @@ export default function AdminCategories() {
         {categories.map((cat) => (
           <li
             key={cat._id}
-            className="border p-3 rounded flex justify-between items-center mb-2 bg-white shadow"
+            className="bg-white shadow p-4 rounded mb-4 flex flex-col md:flex-row justify-between items-center"
           >
-            <div>
-              <span className="font-semibold">{cat.name}</span>
-              <span className="text-sm text-gray-500 ml-2">
-                ({cat.productCount} products)
-              </span>
+            <div className="flex items-center gap-4">
+              
+              {cat.imageUrl ? (
+                <img
+                  src={cat.imageUrl}
+                  className="w-20 h-20 rounded object-cover border"
+                />
+              ) : (
+                <div className="w-20 h-20 border rounded flex items-center justify-center text-gray-500">
+                  No Image
+                </div>
+              )}
+
+              <div>
+                <p className="font-bold text-lg">{cat.name}</p>
+                <p className="text-gray-500 text-sm">
+                  {cat.productCount} products
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex items-center gap-4 mt-4 md:mt-0">
+              
+              {/* Upload / Replace image */}
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) =>
+                    uploadCategoryImage(cat._id, e.target.files[0])
+                  }
+                />
+                <div className="px-3 py-2 border rounded bg-gray-50 hover:bg-gray-100">
+                  {cat.imageUrl ? "Replace Image" : "Upload Image"}
+                </div>
+              </label>
+
               <button
-                disabled={isLoading}
-                className="text-blue-600 hover:underline disabled:text-gray-400"
+                className="text-blue-600 hover:underline"
                 onClick={() => editCategory(cat._id, cat.name)}
               >
                 Edit
               </button>
 
               <button
-                disabled={isLoading}
-                className={
-                  cat.productCount > 0
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-red-600 hover:underline"
-                }
-                onClick={() =>
-                  deleteCategory(cat._id, cat.name, cat.productCount)
-                }
+                className="text-red-600 hover:underline"
+                onClick={() => deleteCategory(cat._id, cat.name, cat.productCount)}
               >
                 Delete
               </button>
+
             </div>
           </li>
         ))}

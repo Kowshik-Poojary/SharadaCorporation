@@ -1,25 +1,42 @@
 import express from "express";
 import Category from "../../models/Category.js";
 import Product from "../../models/Product.js";
+import { upload, uploadToCloudinary } from "../../utils/cloudinary.js";
 
 const router = express.Router();
 
 /* ==========================================================
-    IMPORTANT: MERGED CATEGORY LIST FOR DROPDOWNS
-    MUST BE ABOVE ALL OTHER GET ROUTES
+    MERGED CATEGORY LIST — FOR SELECT DROPDOWNS
+   ========================================================== */
+router.get("/all", async (req, res) => {
+  try {
+    const cats = await Category.find().sort({ name: 1 });
+
+    const formatted = cats.map((c) => ({
+      _id: c._id,
+      name: c.name,
+      imageUrl: c.imageUrl || null,
+      link: c.link || `/products/catalogue/${encodeURIComponent(c.name)}`
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load categories" });
+  }
+});
+
+/* ==========================================================
+    MERGED LIST OF CATEGORY NAMES ONLY — used in dropdowns
    ========================================================== */
 router.get("/all/list", async (req, res) => {
   try {
-    // categories used inside product documents
     const productCats = await Product.distinct("category");
-
-    // categories saved manually in Category collection
     const manualCats = await Category.find().select("name -_id");
 
     const merged = Array.from(
       new Set([
-        ...productCats.map((c) => c?.trim()),
-        ...manualCats.map((c) => c.name.trim()),
+        ...productCats.map((x) => x?.trim()),
+        ...manualCats.map((x) => x.name?.trim()),
       ])
     )
       .filter(Boolean)
@@ -27,21 +44,23 @@ router.get("/all/list", async (req, res) => {
 
     res.json(merged);
   } catch (err) {
-    res.status(500).json({ error: "Failed to load categories" });
+    res.status(500).json({ error: "Failed to load categories list" });
   }
 });
 
 /* ==========================================================
-    GET ALL CATEGORIES WITH PRODUCT COUNT (AdminCategories Page)
+    ADMIN CATEGORY TABLE — WITH PRODUCT COUNT
    ========================================================== */
 router.get("/", async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().sort({ name: 1 });
 
     const result = await Promise.all(
       categories.map(async (c) => ({
         _id: c._id,
         name: c.name,
+        imageUrl: c.imageUrl || null,
+        link: c.link,
         productCount: await Product.countDocuments({ category: c.name }),
       }))
     );
@@ -52,26 +71,43 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* ------------------ ADD CATEGORY ------------------ */
-router.post("/", async (req, res) => {
+/* ==========================================================
+    ADD CATEGORY
+   ========================================================== */
+router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const name = req.body.name?.trim();
-    if (!name) return res.status(400).json({ error: "Name required" });
+    let uploadedUrl = "";
 
-    const exists = await Category.findOne({ name });
-    if (exists) return res.status(400).json({ error: "Category exists" });
+    if (req.file) {
+      const uploaded = await uploadToCloudinary(req.file.path, {
+        folder: "Categories",
+      });
+      uploadedUrl = uploaded.secure_url;
+    }
 
-    const cat = await Category.create({ name });
-    res.json(cat);
-  } catch {
-    res.status(500).json({ error: "Failed to add category" });
+    const name = req.body.name.trim();
+
+    const link = `/products/catalogue/${encodeURIComponent(name)}`;
+
+    const category = await Category.create({
+      name,
+      imageUrl: uploadedUrl,
+      link,
+    });
+
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-/* ------------------ EDIT CATEGORY ------------------ */
+/* ==========================================================
+    UPDATE CATEGORY NAME
+   ========================================================== */
 router.put("/:id", async (req, res) => {
   try {
     const newName = req.body.name?.trim();
+
     if (!newName) return res.status(400).json({ error: "Invalid name" });
 
     const cat = await Category.findById(req.params.id);
@@ -79,23 +115,25 @@ router.put("/:id", async (req, res) => {
 
     const oldName = cat.name;
 
-    // Update name in Category collection
     cat.name = newName;
+    cat.link = `/products/catalogue/${encodeURIComponent(newName)}`;
     await cat.save();
 
-    // Update all product docs that used the old category name
+    // update product docs
     await Product.updateMany(
       { category: oldName },
       { $set: { category: newName } }
     );
 
     res.json(cat);
-  } catch {
-    res.status(500).json({ error: "Failed to update" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update category" });
   }
 });
 
-/* ------------------ DELETE ONLY IF EMPTY ------------------ */
+/* ==========================================================
+    DELETE CATEGORY (ONLY IF NO PRODUCTS)
+   ========================================================== */
 router.delete("/:id", async (req, res) => {
   try {
     const cat = await Category.findById(req.params.id);
@@ -103,16 +141,45 @@ router.delete("/:id", async (req, res) => {
 
     const count = await Product.countDocuments({ category: cat.name });
 
-    if (count > 0)
+    if (count > 0) {
       return res.status(400).json({
-        error: "Cannot delete a category that has products",
+        error: "Cannot delete category with existing products",
       });
+    }
 
     await Category.findByIdAndDelete(req.params.id);
 
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete category" });
+  }
+});
+
+/* ==========================================================
+    UPLOAD / REPLACE CATEGORY IMAGE
+   ========================================================== */
+router.post("/:id/image", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file)
+      return res.status(400).json({ error: "No image uploaded" });
+
+    const cat = await Category.findById(req.params.id);
+    if (!cat)
+      return res.status(404).json({ error: "Category not found" });
+
+    const uploaded = await uploadToCloudinary(req.file.path, {
+      folder: "Categories",
+    });
+
+    cat.imageUrl = uploaded.secure_url;
+    await cat.save();
+
+    res.json({
+      message: "Category image updated",
+      imageUrl: cat.imageUrl,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to upload image" });
   }
 });
 

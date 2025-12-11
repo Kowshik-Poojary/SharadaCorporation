@@ -9,6 +9,7 @@ import enquiryRoutes from "./routes/enquiryRoutes.js";
 import catalogueRoutes from "./routes/catalogueRoutes.js";
 import adminCategories from "./routes/admin/adminCategories.js";
 import adminProducts from "./routes/admin/adminProducts.js";
+import bestSellerVariantRoutes from "./routes/admin/bestSellerVariants.js";
 
 
 
@@ -36,7 +37,7 @@ app.use("/api/catalogue", catalogueRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/admin/categories", adminCategories);
 app.use("/api/admin/products", adminProducts);
-
+app.use("/api/admin/best-seller-variants", bestSellerVariantRoutes);
 
 
 app.listen(process.env.PORT, () =>

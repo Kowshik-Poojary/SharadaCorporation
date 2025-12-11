@@ -1,8 +1,18 @@
 {
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+
   "type": "module",
   "dependencies": {
     "i": "^0.3.7",
     "nodemailer": "^7.0.11",
     "xlsx": "^0.18.5"
   }
+
+  
+  
+
+
 }

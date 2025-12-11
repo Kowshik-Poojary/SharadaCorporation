@@ -9,6 +9,8 @@ export default function AdminLayout({ children }) {
         <h2 className="text-2xl font-bold">Admin Panel</h2>
 
         <nav className="flex flex-col space-y-3">
+
+          {/* Dashboard */}
           <NavLink
             to="/admin"
             className={({ isActive }) =>
@@ -20,6 +22,7 @@ export default function AdminLayout({ children }) {
             Dashboard
           </NavLink>
 
+          {/* Products */}
           <NavLink
             to="/admin/products"
             className={({ isActive }) =>
@@ -43,6 +46,7 @@ export default function AdminLayout({ children }) {
             ➕ Add Product
           </NavLink>
 
+          {/* Delete Product */}
           <NavLink
             to="/admin/products/delete"
             className={({ isActive }) =>
@@ -66,6 +70,7 @@ export default function AdminLayout({ children }) {
             ➕ Add Variant
           </NavLink>
 
+          {/* Delete Variant */}
           <NavLink
             to="/admin/products/delete-variant"
             className={({ isActive }) =>
@@ -77,6 +82,7 @@ export default function AdminLayout({ children }) {
             🗑 Delete Variants
           </NavLink>
 
+          {/* Categories */}
           <NavLink
             to="/admin/categories"
             className={({ isActive }) =>
@@ -88,6 +94,7 @@ export default function AdminLayout({ children }) {
             Categories
           </NavLink>
 
+          {/* Upload Images */}
           <NavLink
             to="/admin/upload-images"
             className={({ isActive }) =>
@@ -98,6 +105,19 @@ export default function AdminLayout({ children }) {
           >
             Upload Images
           </NavLink>
+
+          {/* ⭐ NEW: Best Seller Variants */}
+          <NavLink
+            to="/admin/best-seller-variants"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded ${
+                isActive ? "bg-green-400 text-black" : "hover:bg-gray-700"
+              }`
+            }
+          >
+            Best Seller Variants 🌟
+          </NavLink>
+
         </nav>
       </aside>
 

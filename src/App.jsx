@@ -26,7 +26,7 @@ import ProductCatalogue from "./pages/ProductCatalogue";
 import ProductDetailView from "./pages/ProductDetailView";
 import WishlistPage from "./components/Wishlistpage";
 
-// Admin Pages (FINAL SET)
+// Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts";
 import AdminUploadImages from "./pages/admin/AdminUploadImages";
@@ -36,17 +36,20 @@ import AdminAddVariant from "./pages/admin/AdminAddVariant";
 import AdminDeleteProduct from "./pages/admin/AdminDeleteProduct";
 import AdminDeleteVariant from "./pages/admin/AdminDeleteVariant";
 
+// ⭐ NEW ADMIN PAGE FOR BEST SELLERS
+import AdminBestSellerVariants from "./pages/admin/AdminBestSellerVariants";
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Page Loader (Initial)
+  // Initial Loader
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 900);
     return () => clearTimeout(timer);
   }, []);
 
-  // Load User from LocalStorage
+  // Load user from localStorage
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) setUser(JSON.parse(stored));
@@ -54,7 +57,7 @@ function App() {
 
   if (loading) return <Loader />;
 
-  // -------- Admin Protected Route --------
+  // 🔐 Admin Protected Route
   const AdminRoute = ({ children }) => {
     if (!user || !user.isAdmin) return <Navigate to="/" replace />;
     return children;
@@ -68,7 +71,7 @@ function App() {
 
         <div className="flex-grow pt-20">
           <Routes>
-            {/* ---------- Public Routes ---------- */}
+            {/* ---------- PUBLIC ROUTES ---------- */}
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/csr" element={<CSR />} />
@@ -91,7 +94,9 @@ function App() {
             {/* Wishlist */}
             <Route path="/wishlist" element={<WishlistPage />} />
 
-            {/* ---------- ADMIN PANEL ROUTES ---------- */}
+
+            {/* -------------- ADMIN ROUTES -------------- */}
+
             <Route
               path="/admin"
               element={
@@ -128,7 +133,7 @@ function App() {
               }
             />
 
-            {/* ADD PRODUCT PAGE */}
+            {/* ADD PRODUCT */}
             <Route
               path="/admin/products/new"
               element={
@@ -138,7 +143,7 @@ function App() {
               }
             />
 
-            {/* ADD VARIANT PAGE */}
+            {/* ADD VARIANT */}
             <Route
               path="/admin/products/add-variant"
               element={
@@ -148,14 +153,36 @@ function App() {
               }
             />
 
+            {/* DELETE PRODUCT */}
             <Route
               path="/admin/products/delete"
-              element={<AdminDeleteProduct />}
+              element={
+                <AdminRoute>
+                  <AdminDeleteProduct />
+                </AdminRoute>
+              }
             />
+
+            {/* DELETE VARIANT */}
             <Route
               path="/admin/products/delete-variant"
-              element={<AdminDeleteVariant />}
+              element={
+                <AdminRoute>
+                  <AdminDeleteVariant />
+                </AdminRoute>
+              }
             />
+
+            {/* ⭐ NEW BEST SELLER PAGE */}
+            <Route
+              path="/admin/best-seller-variants"
+              element={
+                <AdminRoute>
+                  <AdminBestSellerVariants />
+                </AdminRoute>
+              }
+            />
+
           </Routes>
         </div>
 

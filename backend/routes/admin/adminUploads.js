@@ -1,6 +1,7 @@
 import express from "express";
 import Product from "../models/Product.js";
 import { upload, uploadToCloudinary } from "../utils/cloudinary.js";
+import Category from "../../models/Category.js";
 
 const router = express.Router();
 
@@ -51,6 +52,55 @@ router.post("/:productId", upload.array("images", 10), async (req, res) => {
     console.error("Upload error:", error);
     res.status(500).json({ message: error.message });
   }
+});
+
+/* ---------------- CREATE CATEGORY ---------------- */
+router.post("/", async (req, res) => {
+  try {
+    const name = req.body.name.trim();
+    const linkName = name.replace(/\s+/g, "-").toLowerCase();
+
+    const category = await Category.create({
+      name,
+      link: `/products/catalogue/${name}`,
+      position: 0
+    });
+
+    res.json(category);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ---------------- UPLOAD CATEGORY IMAGE ---------------- */
+router.post(
+  "/:categoryId/image",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file" });
+
+      const uploaded = await uploadToCloudinary(req.file.path, {
+        folder: "Categories",
+      });
+
+      const updated = await Category.findByIdAndUpdate(
+        req.params.categoryId,
+        { imageUrl: uploaded.secure_url },
+        { new: true }
+      );
+
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/* ---------------- GET ALL CATEGORIES ---------------- */
+router.get("/all", async (req, res) => {
+  const list = await Category.find().sort({ position: 1 });
+  res.json(list);
 });
 
 export default router;
