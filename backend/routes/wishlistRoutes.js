@@ -20,29 +20,38 @@ router.post("/add", async (req, res) => {
 });
 
 router.get("/:userId", async (req, res) => {
-  const wishlist = await Wishlist.find({ userId: req.params.userId });
-  const formatted = [];
+  try {
+    const wishlist = await Wishlist.find({ userId: req.params.userId });
+    const formatted = [];
 
-  for (const item of wishlist) {
-    const product = await Product.findById(item.productId);
-    if (!product) continue;
+    for (const item of wishlist) {
+      const product = await Product.findById(item.productId);
+      if (!product) continue;
 
-    const variant = product.variants.find(
-      (v) => v.data["Code #"] === item.variantCode
-    );
-    if (!variant) continue;
+      const variant = product.variants.find((v) =>
+        v.code === item.variantCode ||
+        v.data?.["Code #"] === item.variantCode ||
+        String(v._id).slice(-6) === item.variantCode
+      );
 
-    formatted.push({
-      productId: product._id,
-      productName: product.name,
-      variantCode: item.variantCode,
-      imageUrl: variant.imageUrl || variant.data.imageUrl,
-      variantDetails: variant.data,
-    });
+      if (!variant) continue;
+
+      formatted.push({
+        productId: product._id,
+        productName: product.name,
+        variantCode: item.variantCode,
+        imageUrl: variant.imageUrl || variant.data?.imageUrl,
+        variantDetails: variant.data,
+      });
+    }
+
+    res.json(formatted);
+  } catch (err) {
+    console.error("Wishlist fetch failed:", err);
+    res.status(500).json([]);
   }
-
-  res.json(formatted);
 });
+
 
 router.post("/remove", async (req, res) => {
   const { userId, productId, variantCode } = req.body;
