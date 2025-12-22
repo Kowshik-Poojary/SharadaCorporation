@@ -158,7 +158,7 @@ const Login = ({ setUser, loggedOut }) => {
       if (res.ok) {
   const isAdmin = email === ADMIN_EMAIL;
 
-  const userData = { ...data, isAdmin, token: data.token };
+  const userData = { ...data.user, isAdmin, token: data.token };
 
   setUser(userData);
   localStorage.setItem("user", JSON.stringify(userData));
