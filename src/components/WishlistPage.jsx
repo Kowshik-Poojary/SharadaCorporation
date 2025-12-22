@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 // UI imports
@@ -20,22 +20,32 @@ export default function WishlistPage() {
 
   // Fetch wishlist
   useEffect(() => {
+  console.log("🔍 WishlistPage useEffect triggered");
+  console.log("User object:", user);
+  console.log("userId:", userId);
+  
   if (!userId) {
-    console.log("No userId found");
+    console.log("❌ No userId found - skipping fetch");
     return;
   }
 
-  console.log("Fetching wishlist for userId:", userId);
+  console.log("✅ Fetching wishlist for userId:", userId);
 
-  axios
+  axiosInstance
     .get(`/api/wishlist/${userId}`)
     .then((res) => {
-      console.log("Wishlist response:", res.data);
+      console.log("✅ Wishlist fetch successful");
+      console.log("Response status:", res.status);
+      console.log("Response data:", res.data);
+      console.log("Is array?", Array.isArray(res.data));
+      console.log("Data length:", res.data?.length);
       setItems(Array.isArray(res.data) ? res.data : []);
     })
     .catch((err) => {
-      console.error("Wishlist fetch error:", err);
-      console.error("Error details:", err.response?.data || err.message);
+      console.error("❌ Wishlist fetch error:", err);
+      console.error("Error status:", err.response?.status);
+      console.error("Error data:", err.response?.data);
+      console.error("Error message:", err.message);
       setItems([]);
     });
 }, [userId]);
@@ -50,7 +60,7 @@ export default function WishlistPage() {
 
   const handleRemove = async (variantCode, productId) => {
     try {
-      await axios.post("/api/wishlist/remove", {
+      await axiosInstance.post("/api/wishlist/remove", {
         userId,
         productId,
         variantCode,
@@ -102,7 +112,7 @@ export default function WishlistPage() {
       setSending(true);
       loaderRef.current?.continuousStart(); // start loader bar
 
-      const res = await axios.post("/api/enquiry/wishlist", payload);
+      const res = await axiosInstance.post("/api/enquiry/wishlist", payload);
 
       if (res.data?.success) {
         toast.success("Enquiry sent successfully!");
