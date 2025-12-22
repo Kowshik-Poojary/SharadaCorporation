@@ -27,12 +27,20 @@ router.post("/add", async (req, res) => {
 
 router.get("/:userId", async (req, res) => {
   try {
-    const wishlist = await Wishlist.find({ userId: req.params.userId });
+    const { userId } = req.params;
+    console.log("Fetching wishlist for userId:", userId);
+
+    const wishlist = await Wishlist.find({ userId: userId });
+    console.log("Found wishlist items:", wishlist.length);
+
     const formatted = [];
 
     for (const item of wishlist) {
       const product = await Product.findById(item.productId);
-      if (!product) continue;
+      if (!product) {
+        console.log("Product not found for ID:", item.productId);
+        continue;
+      }
 
       const wantedCode = normalizeCode(item.variantCode);
 
@@ -45,7 +53,10 @@ router.get("/:userId", async (req, res) => {
         return normalizeCode(variantCode) === wantedCode;
       });
 
-      if (!variant) continue;
+      if (!variant) {
+        console.log("Variant not found for code:", item.variantCode);
+        continue;
+      }
 
       formatted.push({
         productId: product._id,
@@ -59,6 +70,8 @@ router.get("/:userId", async (req, res) => {
       });
     }
 
+    console.log("Formatted items to return:", formatted.length);
+
     // ✅ SORT BY VARIANT CODE
     formatted.sort((a, b) =>
       normalizeCode(a.variantCode).localeCompare(
@@ -71,7 +84,7 @@ router.get("/:userId", async (req, res) => {
     res.json(formatted);
   } catch (err) {
     console.error("Wishlist fetch failed:", err);
-    res.status(500).json([]);
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -20,15 +20,22 @@ export default function WishlistPage() {
 
   // Fetch wishlist
   useEffect(() => {
-  if (!userId) return;
+  if (!userId) {
+    console.log("No userId found");
+    return;
+  }
+
+  console.log("Fetching wishlist for userId:", userId);
 
   axios
     .get(`/api/wishlist/${userId}`)
     .then((res) => {
+      console.log("Wishlist response:", res.data);
       setItems(Array.isArray(res.data) ? res.data : []);
     })
     .catch((err) => {
       console.error("Wishlist fetch error:", err);
+      console.error("Error details:", err.response?.data || err.message);
       setItems([]);
     });
 }, [userId]);
