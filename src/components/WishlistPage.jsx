@@ -8,7 +8,8 @@ import toast, { Toaster } from "react-hot-toast";
 
 export default function WishlistPage() {
   const navigate = useNavigate();
-  const user = typeof window !== "undefined" && JSON.parse(localStorage.getItem("user"));
+  const user =
+    typeof window !== "undefined" && JSON.parse(localStorage.getItem("user"));
   const userId = user?._id;
 
   const [items, setItems] = useState([]);
@@ -23,7 +24,11 @@ export default function WishlistPage() {
 
     axios
       .get(`/api/wishlist/${userId}`)
-      .then((res) => setItems(res.data))
+      .then((res) => {
+        const wishlist = res.data?.wishlist || res.data || [];
+        setItems(Array.isArray(wishlist) ? wishlist : []);
+      })
+
       .catch(console.error);
   }, [userId]);
 
@@ -36,12 +41,20 @@ export default function WishlistPage() {
 
   const handleRemove = async (variantCode, productId) => {
     try {
-      await axios.post("/api/wishlist/remove", { userId, productId, variantCode });
+      await axios.post("/api/wishlist/remove", {
+        userId,
+        productId,
+        variantCode,
+      });
 
       setItems((items) =>
-        items.filter((i) => !(i.variantCode === variantCode && i.productId === productId))
+        items.filter(
+          (i) => !(i.variantCode === variantCode && i.productId === productId)
+        )
       );
-      setSelectedKeys((sk) => sk.filter((k) => k !== `${productId}-${variantCode}`));
+      setSelectedKeys((sk) =>
+        sk.filter((k) => k !== `${productId}-${variantCode}`)
+      );
 
       toast.success("Removed from wishlist");
     } catch (err) {
@@ -50,7 +63,7 @@ export default function WishlistPage() {
     }
   };
 
-  if (!userId) return <div className="p-6">.  .  .</div>;
+  if (!userId) return <div className="p-6">. . .</div>;
   if (!items.length) return <div className="p-6">Your wishlist is empty.</div>;
 
   const selectedItems = selectedKeys
@@ -80,7 +93,7 @@ export default function WishlistPage() {
       setSending(true);
       loaderRef.current?.continuousStart(); // start loader bar
 
-      const res = await axios.post("http://localhost:5000/api/enquiry/wishlist", payload);
+      const res = await axios.post("/api/enquiry/wishlist", payload);
 
       if (res.data?.success) {
         toast.success("Enquiry sent successfully!");
@@ -170,7 +183,9 @@ export default function WishlistPage() {
                 </button>
                 <button
                   className="bg-gray-200 text-gray-800 px-3 py-1 rounded"
-                  onClick={() => navigate(`/products/details/${item.productId}`)}
+                  onClick={() =>
+                    navigate(`/products/details/${item.productId}`)
+                  }
                 >
                   View Product
                 </button>
