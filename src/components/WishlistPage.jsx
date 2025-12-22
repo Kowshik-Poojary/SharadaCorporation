@@ -20,25 +20,19 @@ export default function WishlistPage() {
 
   // Fetch wishlist
   useEffect(() => {
-    if (!userId) return;
+  if (!userId) return;
 
-    axios
-      .get(`/api/wishlist/${userId}`)
-      .then((res) => {
-        const wishlist =
-          res.data?.wishlist ||
-          res.data?.data?.wishlist ||
-          res.data?.data ||
-          res.data?.wishlistItems ||
-          [];
+  axios
+    .get(`/api/wishlist/${userId}`)
+    .then((res) => {
+      setItems(Array.isArray(res.data) ? res.data : []);
+    })
+    .catch((err) => {
+      console.error("Wishlist fetch error:", err);
+      setItems([]);
+    });
+}, [userId]);
 
-        setItems(Array.isArray(wishlist) ? wishlist : []);
-      })
-      .catch((err) => {
-        console.error("Wishlist fetch error:", err);
-        setItems([]);
-      });
-  }, [userId]);
 
   const toggleSelect = (item) => {
     const key = `${item.productId}-${item.variantCode}`;
