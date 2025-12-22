@@ -15,7 +15,11 @@ const exhibitions = [
   },
   {
     title: "Ambiente 2024",
-    range: [15, 22],
+    range: [18, 22],
+  },
+  {
+    title: "Host Milano 2023",
+    range: [15, 17],
   },
 ];
 

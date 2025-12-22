@@ -1,10 +1,9 @@
 import express from "express";
-import nodemailer from "nodemailer";
-// ✅ import middleware
+import { sendMail } from "../utils/brevoMailer.js";
 
 const router = express.Router();
 
-// ✅ Protect this route using token verification
+/* ---------------- CONTACT US ENQUIRY ---------------- */
 router.post("/", async (req, res) => {
   const { name, email, mobile, message } = req.body;
 
@@ -13,33 +12,56 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    c; // use this in /routes/wishlist.js and catalogue route
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // SSL
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // App password
-      },
-      connectionTimeout: 10_000, // 10s
-      greetingTimeout: 10_000,
-      socketTimeout: 10_000,
+    const timestamp = new Date().toISOString();
+    await sendMail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `New Contact Enquiry [${timestamp}]`,
+      text: `Name: ${name}
+Email: ${email}
+Mobile: ${mobile}
+
+Message:
+${message}`,
+      replyTo: email,
     });
 
-    const mailOptions = {
-      from: `"Enquiry Form" <shardacorporation.334@gmail.com>`,
-      to: "shardacorporation.334@gmail.com",
-      subject: "New Enquiry Received",
-      text: `You have received a new enquiry.\n\nName: ${name}\nEmail: ${email}\nMobile: ${mobile}\nMessage: ${message}`,
-      replyTo: email,
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ message: "Enquiry sent successfully!" });
+    res.json({ success: true, message: "Enquiry sent successfully!" });
   } catch (err) {
     console.error("Error sending mail:", err);
-    res.status(500).json({ message: "Failed to send enquiry" });
+    res.status(500).json({ success: false, error: "Failed to send enquiry" });
+  }
+});
+
+/* ---------------- WISHLIST ENQUIRY ---------------- */
+router.post("/wishlist", async (req, res) => {
+  const { userName, userEmail, selectedItems } = req.body;
+
+  if (!userName || !userEmail || !Array.isArray(selectedItems)) {
+    return res.status(400).json({ message: "Invalid wishlist enquiry" });
+  }
+
+  let text = `Wishlist Enquiry\n\nName: ${userName}\nEmail: ${userEmail}\n\nProducts:\n`;
+
+  selectedItems.forEach((item, i) => {
+    text += `
+${i + 1}. ${item.productName}
+Variant: ${item.variantCode}
+`;
+  });
+
+  try {
+    const timestamp = new Date().toISOString();
+    await sendMail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `Wishlist Enquiry from ${userName} [${timestamp}]`,
+      text,
+      replyTo: userEmail,
+    });
+
+    res.json({ success: true, message: "Wishlist enquiry sent successfully!" });
+  } catch (err) {
+    console.error("Wishlist enquiry error:", err);
+    res.status(500).json({ success: false, error: "Failed to send wishlist enquiry" });
   }
 });
 

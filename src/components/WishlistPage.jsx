@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "../utils/axiosInstance";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 // UI imports
@@ -80,7 +80,7 @@ export default function WishlistPage() {
       setSending(true);
       loaderRef.current?.continuousStart(); // start loader bar
 
-      const res = await axios.post("/api/wishlist/enquire", payload);
+      const res = await axios.post("http://localhost:5000/api/enquiry/wishlist", payload);
 
       if (res.data?.success) {
         toast.success("Enquiry sent successfully!");

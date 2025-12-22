@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "../utils/axiosInstance";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 
 export default function ProductDetailView() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -42,11 +43,10 @@ export default function ProductDetailView() {
       .catch(() => {});
   }, [userId]);
 
-  // Zoom effect
+  // Image zoom effect
   useEffect(() => {
     const container = imgContainerRef.current;
     const img = imgRef.current;
-
     if (!container || !img) return;
 
     let scale = 1;
@@ -59,16 +59,15 @@ export default function ProductDetailView() {
     };
 
     container.addEventListener("wheel", handleWheel);
-
     return () => container.removeEventListener("wheel", handleWheel);
   }, [selectedVariant]);
 
   if (!product) return <h2 className="p-6">Loading...</h2>;
 
-  // FIXED: Safely extract keys from first variant
+  // Extract variant keys safely
   const variantKeys = Array.from(
     new Set(
-      product?.variants
+      product.variants
         ?.flatMap((v) => Object.keys(v?.data || {}))
         .filter((k) => k.toLowerCase() !== "imageurl")
     )
@@ -114,8 +113,33 @@ export default function ProductDetailView() {
 
   return (
     <div className="p-4 md:p-8">
+
+      {/* ===== BREADCRUMB NAVIGATION ===== */}
+      <div className="mb-4 text-sm text-gray-600">
+        <Link to="/" className="hover:underline">Home</Link>
+        <span className="mx-2">/</span>
+
+        <Link
+          to={`/products/catalogue/${product.category}`}
+          className="hover:underline"
+        >
+          {product.category}
+        </Link>
+
+        <span className="mx-2">/</span>
+        <span className="font-medium text-gray-800">{product.name}</span>
+      </div>
+
+      {/* ===== BACK BUTTON ===== */}
+      <button
+        onClick={() => navigate(`/products/catalogue/${product.category}`)}
+        className="mb-6 text-blue-600 hover:underline"
+      >
+        ← Back to {product.category}
+      </button>
+
       <div className="flex flex-col md:flex-row gap-10">
-        {/* LEFT PANEL – SINGLE IMAGE VIEWER */}
+        {/* LEFT PANEL – IMAGE */}
         <div className="md:w-1/2 w-full space-y-6">
           <div
             ref={imgContainerRef}
@@ -135,7 +159,8 @@ export default function ProductDetailView() {
           </div>
 
           <p className="text-center text-gray-600">
-            Showing image for: <b>{selectedVariant?.data?.["Code #"]}</b>
+            Showing image for:{" "}
+            <b>{selectedVariant?.data?.["Code #"] || "-"}</b>
           </p>
         </div>
 
@@ -147,8 +172,6 @@ export default function ProductDetailView() {
           <Link to="/wishlist" className="text-yellow-600 underline mb-4 block">
             Go to Wishlist
           </Link>
-
-          
 
           {/* VARIANTS TABLE */}
           <div className="overflow-x-auto bg-white rounded-lg shadow">
@@ -166,7 +189,6 @@ export default function ProductDetailView() {
 
               <tbody>
                 {product.variants.map((variant, idx) => {
-                  // SAFE CODE EXTRACTION
                   const code =
                     variant.code ||
                     variant.data?.["Code #"] ||
@@ -179,14 +201,14 @@ export default function ProductDetailView() {
                     <tr
                       key={idx}
                       onClick={() => setSelectedVariant(variant)}
-                      className={`border-t cursor-pointer transition 
-                      ${
-                        selectedVariant === variant
-                          ? "bg-yellow-100"
-                          : idx % 2 === 0
-                          ? "bg-gray-50"
-                          : "bg-white"
-                      } hover:bg-yellow-50`}
+                      className={`cursor-pointer transition border-t
+                        ${
+                          selectedVariant === variant
+                            ? "bg-yellow-100"
+                            : idx % 2 === 0
+                            ? "bg-gray-50"
+                            : "bg-white"
+                        } hover:bg-yellow-50`}
                     >
                       <td className="px-3 py-2 border flex items-center gap-3">
                         <img
@@ -196,7 +218,7 @@ export default function ProductDetailView() {
                             "/placeholder.webp"
                           }
                           alt={code}
-                          className="h-12 w-12 object-cover rounded border shrink-0"
+                          className="h-12 w-12 object-cover rounded border"
                           onError={(e) => (e.target.src = "/placeholder.webp")}
                         />
 
@@ -205,9 +227,9 @@ export default function ProductDetailView() {
                             e.stopPropagation();
                             toggleWishlist(code);
                           }}
-                          className="text-xl shrink-0"
+                          className="text-xl"
                         >
-                          {isWishlisted ? "💖" : "🤍"}
+                          {isWishlisted ? "❤️" : "🤍"}
                         </button>
                       </td>
 

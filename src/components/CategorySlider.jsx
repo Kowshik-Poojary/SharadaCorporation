@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "../utils/axiosInstance";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "./CategorySlider.css";
 
 const CategorySlider = () => {
   const [categories, setCategories] = useState([]);
@@ -11,52 +10,62 @@ const CategorySlider = () => {
   const navigate = useNavigate();
   const touchStart = useRef(0);
   const touchEnd = useRef(0);
+  const autoSlideRef = useRef(null);
 
-  /* ----------------------------------------
-        LOAD CATEGORIES
-  ----------------------------------------- */
+  /* -------- START AUTO SLIDE -------- */
+  const startAutoSlide = () => {
+    clearInterval(autoSlideRef.current);
+    autoSlideRef.current = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % categories.length);
+    }, 4500);
+  };
+
+  const stopAutoSlide = () => {
+    clearInterval(autoSlideRef.current);
+  };
+
+  /* -------- LOAD CATEGORIES -------- */
   useEffect(() => {
     axios
       .get("/api/admin/categories/all")
       .then((res) => {
-        // backend returns ["Cookware", "Baskets", ...]
-        // convert to slider format
         const processed = res.data.map((c) => ({
           _id: c._id,
           name: c.name,
           imageUrl: c.imageUrl || "/placeholder.webp",
-          link: `/products/catalogue/${encodeURIComponent(c.name)}`
+          link: `/products/catalogue/${encodeURIComponent(c.name)}`,
         }));
 
-        setCategories(processed);
+        // ✅ FORCE "New Arrival" FIRST
+        const newArrival = processed.find(
+          (c) => c.name.toLowerCase() === "new arrival"
+        );
+
+        const others = processed.filter(
+          (c) => c.name.toLowerCase() !== "new arrival"
+        );
+
+        const ordered = newArrival
+          ? [newArrival, ...others]
+          : processed;
+
+        setCategories(ordered);
+        setCurrent(0);
       })
       .catch(() => setCategories([]));
   }, []);
 
-  /* ----------------------------------------
-        AUTO SLIDE
-  ----------------------------------------- */
-  const nextSlide = () => {
-    setCurrent((prev) => (prev + 1) % categories.length);
-  };
-
-  const prevSlide = () => {
-    setCurrent((prev) =>
-      prev === 0 ? categories.length - 1 : prev - 1
-    );
-  };
-
+  /* -------- AUTO SLIDE INIT -------- */
   useEffect(() => {
-    if (categories.length <= 1) return; // prevent sliding if only 1 category
-    const timer = setInterval(nextSlide, 4000);
-    return () => clearInterval(timer);
+    if (categories.length <= 1) return;
+
+    startAutoSlide();
+    return () => stopAutoSlide();
   }, [categories]);
 
-
-  /* ----------------------------------------
-        SWIPE CONTROLS
-  ----------------------------------------- */
+  /* -------- SWIPE -------- */
   const handleTouchStart = (e) => {
+    stopAutoSlide(); // pause only during swipe
     touchStart.current = e.changedTouches[0].clientX;
   };
 
@@ -64,63 +73,123 @@ const CategorySlider = () => {
     touchEnd.current = e.changedTouches[0].clientX;
     const distance = touchStart.current - touchEnd.current;
 
-    if (distance > 50) nextSlide();
-    if (distance < -50) prevSlide();
+    if (distance > 50)
+      setCurrent((prev) => (prev + 1) % categories.length);
+
+    if (distance < -50)
+      setCurrent((prev) =>
+        prev === 0 ? categories.length - 1 : prev - 1
+      );
+
+    startAutoSlide(); // ✅ restart after swipe
   };
 
-  /* ----------------------------------------
-        RENDER
-  ----------------------------------------- */
   return (
-    <div className="premium-slider-container">
-      {/* Slides */}
+    <div
+      className="w-full overflow-hidden relative rounded-xl"
+      onMouseEnter={stopAutoSlide}   // desktop hover pause
+      onMouseLeave={startAutoSlide} // resume
+    >
+      {/* SLIDES */}
       <div
-        className="premium-slides"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         style={{ transform: `translateX(-${current * 100}%)` }}
+        className="flex transition-transform duration-700 ease-in-out"
       >
         {categories.map((cat, index) => (
           <div
             key={cat._id || index}
-            className={`premium-slide ${index === current ? "active" : ""}`}
             onClick={() => navigate(cat.link)}
+            className={`
+              min-w-full relative cursor-pointer
+              transition-all duration-500
+              ${
+                index === current
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-[0.98]"
+              }
+            `}
           >
+            {/* IMAGE */}
             <img
               src={cat.imageUrl}
               alt={cat.name}
-              className="premium-slide-img"
               onError={(e) => (e.target.src = "/placeholder.webp")}
+              className="
+                w-full rounded-xl block
+                object-contain bg-white aspect-[16/9]
+                sm:aspect-[4/3]
+                md:object-cover md:bg-transparent md:aspect-auto
+              "
             />
 
-            <div className="premium-overlay"></div>
+            {/* OVERLAY */}
+            <div
+              className="
+                absolute bottom-0 w-full rounded-xl
+                h-[30%] sm:h-[40%] md:h-[45%]
+                bg-gradient-to-t from-black/60 to-transparent
+              "
+            />
 
-            <div className="premium-title">{cat.name}</div>
+            {/* TITLE */}
+            <div
+              className="
+                absolute left-4 bottom-2 sm:bottom-3
+                text-white font-bold drop-shadow
+                text-base md:text-[1.4rem]
+              "
+            >
+              {cat.name}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Arrows */}
+      {/* ARROWS */}
       {categories.length > 1 && (
         <>
-          <button className="premium-arrow left" onClick={prevSlide}>
+          <button
+            onClick={() =>
+              setCurrent((prev) =>
+                prev === 0 ? categories.length - 1 : prev - 1
+              )
+            }
+            className="
+              hidden md:flex absolute left-3 top-1/2 -translate-y-1/2
+              bg-black/45 hover:bg-black/60 text-white
+              p-2 rounded-full z-20 transition
+            "
+          >
             <ChevronLeft size={24} />
           </button>
 
-          <button className="premium-arrow right" onClick={nextSlide}>
+          <button
+            onClick={() =>
+              setCurrent((prev) => (prev + 1) % categories.length)
+            }
+            className="
+              hidden md:flex absolute right-3 top-1/2 -translate-y-1/2
+              bg-black/45 hover:bg-black/60 text-white
+              p-2 rounded-full z-20 transition
+            "
+          >
             <ChevronRight size={24} />
           </button>
         </>
       )}
 
-      {/* Pagination Dots */}
-      <div className="premium-dots">
+      {/* DOTS */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
         {categories.map((_, idx) => (
           <div
             key={idx}
-            className={`premium-dot ${current === idx ? "active" : ""}`}
             onClick={() => setCurrent(idx)}
-          ></div>
+            className={`h-1 rounded-full cursor-pointer transition-all
+              ${current === idx ? "w-7 bg-white" : "w-4 bg-white/50"}
+            `}
+          />
         ))}
       </div>
     </div>

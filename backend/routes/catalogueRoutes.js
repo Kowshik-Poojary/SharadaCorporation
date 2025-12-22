@@ -1,5 +1,5 @@
 import express from "express";
-import nodemailer from "nodemailer";
+import { sendMail } from "../utils/brevoMailer.js";
 
 const router = express.Router();
 
@@ -11,35 +11,18 @@ router.post("/request", async (req, res) => {
   }
 
   try {
-    // Transporter setup (use your app Gmail)
-    // use this in /routes/wishlist.js and catalogue route
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // SSL
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // App password
-      },
-      connectionTimeout: 10_000, // 10s
-      greetingTimeout: 10_000,
-      socketTimeout: 10_000,
-    });
-
-    // Mail options
-    const mailOptions = {
-      from: `"Catalogue Request" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: "New Catalogue Request",
+    const timestamp = new Date().toISOString();
+    await sendMail({
+      to: process.env.COMPANY_EMAIL,
+      subject: `New Catalogue Request [${timestamp}]`,
       text: `A user has requested the catalogue.\n\nUser Email: ${userEmail}`,
       replyTo: userEmail,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    res.json({ message: "Catalogue request sent successfully!" });
+    res.json({ success: true, message: "Catalogue request sent successfully!" });
   } catch (err) {
     console.error("Error sending mail:", err);
-    res.status(500).json({ message: "Failed to send email" });
+    res.status(500).json({ success: false, error: "Failed to send email" });
   }
 });
 

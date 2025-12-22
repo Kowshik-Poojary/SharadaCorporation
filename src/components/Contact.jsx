@@ -28,7 +28,9 @@ const Contact = () => {
             Mumbai 400 004 (India)
           </p>
           <p className="text-gray-600 mt-2 text-sm">
-            <span className="font-semibold">Tel:</span> +91-22 425238 / 39 / 40
+            <span className="font-semibold">Tel:</span> +91-22 425238 <br/>
+            +91-2249601858 <br/>
+            +91-9619854522
           </p>
         </div>
 
@@ -40,7 +42,12 @@ const Contact = () => {
             MLK Ind. Estate No.1, Gala No. 3, 4 & 5 <br />
             Behind Johnson Motors, <br />
             Near Range Office, Sativali Rd, Vasai (E), <br />
-            Dist. Palghar, Pin Code: 401208
+            Dist. Palghar, Pin Code: 401208 <br />
+            Maharashtra, India
+          </p>
+          <p className="text-gray-600 mt-2 text-sm">
+            <span className="font-semibold">Tel:</span> +91-8503516333 <br/>
+            +91-8503516222
           </p>
         </div>
       </div>

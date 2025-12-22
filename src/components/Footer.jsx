@@ -1,54 +1,95 @@
 import React from "react";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, FileText, Award } from "lucide-react";
 
 const Footer = () => {
   return (
     <footer className="bg-[#2b0908] text-gray-200 py-10 mt-10">
       <div className="container mx-auto px-6 grid md:grid-cols-3 gap-8 items-center text-center md:text-left">
-        
         {/* Left - Brand Info */}
         <div>
           <h2 className="text-2xl font-semibold text-white mb-2">
             Sharda Corporation
           </h2>
           <p className="text-sm text-gray-400">
-            A legacy of stainless steel excellence, trusted globally since 1978.
+            A legacy of stainless steel excellence since 1978, delivering
+            precision-crafted products trusted by industries and households
+            across the globe.
           </p>
         </div>
 
-        {/* Middle - Navigation Links */}
+        {/* Middle - Certifications */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-yellow-400">Quick Links</h3>
-          <ul className="space-y-2">
-            <li className="hover:text-yellow-400 transition cursor-pointer">
-              Privacy Policy
+          <h3 className="text-lg font-semibold mb-3 text-yellow-400">
+            Certifications & Recognition
+          </h3>
+
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-center justify-center md:justify-start gap-2">
+              <FileText size={16} />
+              <a
+                href="/certificates/ISO-9001-2015-Certificate.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-yellow-400 transition"
+              >
+                ISO 9001 : 2015 Certificate (2023)
+              </a>
             </li>
-            <li className="hover:text-yellow-400 transition cursor-pointer">
-              Terms & Conditions
+
+            <li className="flex items-center justify-center md:justify-start gap-2">
+              <FileText size={16} />
+              <a
+                href="/certificates/ISO-9001-2015-Annex.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-yellow-400 transition"
+              >
+                ISO 9001 : 2015 – Scope & Locations (Annex)
+              </a>
             </li>
-            <li className="hover:text-yellow-400 transition cursor-pointer">
-              Support
+
+            <li className="flex items-center justify-center md:justify-start gap-2">
+              <FileText size={16} />
+              <a
+                href="/certificates/BSCI-Audit-Report-2023.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-yellow-400 transition"
+              >
+                BSCI Audit Certification (2023)
+              </a>
             </li>
-          </ul>
+
+            <li className="flex items-center justify-center md:justify-start gap-2">
+              <Award size={16} />
+              <span>
+                Government Approved <b>One Star Export House</b>
+              </span>
+            </li>
+          </ul> 
         </div>
 
-        {/* Right - Contact & Socials */}
+        {/* Right - Contact */}
         <div>
-          <h3 className="text-lg font-semibold mb-3 text-yellow-400">Contact Us</h3>
+          <h3 className="text-lg font-semibold mb-3 text-yellow-400">
+            Contact Us
+          </h3>
+
           <p className="flex justify-center md:justify-start items-center gap-2">
-            <Mail size={16} /> info@shardacorporation.com
-          </p>
-          <p className="flex justify-center md:justify-start items-center gap-2">
-            <Phone size={16} /> +91-22425238/39/40
+            <Mail size={16} /> businessdevelopment.sharda@gmail.com
           </p>
 
-          
+          <p className="flex justify-center md:justify-start items-center gap-2">
+            <Phone size={16} /><br/> +91-22 425238 <br /> +91-2249601858 <br /> +91-9619854522
+          </p>
         </div>
       </div>
 
-      {/* Bottom line */}
+      {/* Bottom */}
       <div className="border-t border-gray-700 mt-8 pt-4 text-center text-sm text-gray-400">
-        <p>© {new Date().getFullYear()} Sharda Corporation. All Rights Reserved.</p>
+        <p>
+          © {new Date().getFullYear()} Sharda Corporation. All Rights Reserved.
+        </p>
         <p className="text-xs mt-1">
           Made by <span className="text-yellow-400">Kowshik Poojary</span>,{" "}
           <span className="text-yellow-400">Tanmay Pirdankar</span> &{" "}

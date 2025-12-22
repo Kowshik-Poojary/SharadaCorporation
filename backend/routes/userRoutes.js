@@ -3,10 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { OAuth2Client } from "google-auth-library";
-import dotenv from "dotenv";
-import nodemailer from "nodemailer";
+import { sendMail } from "../utils/brevoMailer.js";
 
-dotenv.config();
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -129,23 +127,16 @@ router.post("/forgot-password", async (req, res) => {
 
     // Send OTP via email
     // use this in /routes/wishlist.js and catalogue route
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // SSL
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // App password
-      },
-      connectionTimeout: 10_000, // 10s
-      greetingTimeout: 10_000,
-      socketTimeout: 10_000,
-    });
-
-    await transporter.sendMail({
+    await sendMail({
       to: email,
       subject: "Password Reset Code",
       text: `Your OTP is ${otp}. It will expire in 5 minutes.`,
+      html: `
+    <h2>Password Reset</h2>
+    <p>Your OTP is:</p>
+    <h1>${otp}</h1>
+    <p>This code will expire in 5 minutes.</p>
+  `,
     });
 
     res.json({ message: "OTP sent to your email." });

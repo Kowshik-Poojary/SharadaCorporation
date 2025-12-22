@@ -6,21 +6,26 @@ import EnquiryMap from "./enquirymap";
 
 const Home = () => {
   return (
-    <div className="p-10 text-center space-y-10">
+    <div className="w-full overflow-x-hidden">
 
-      {/* CATEGORY SLIDER */}
-      <CategorySlider />
+      {/* CATEGORY SLIDER – VERY SMALL PADDING */}
+      <div className="px-2 sm:px-3 lg:px-4 pt-2">
+        <CategorySlider />
+      </div>
 
-      {/* BEST SELLING VARIANTS SLIDER */}
-      <BestSellerSlider />
+      {/* REST OF PAGE */}
+      <div className="px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 text-center space-y-8 sm:space-y-10">
+        <BestSellerSlider />
 
-      {/* ENQUIRY MAP SECTION */}
-      <div className="mt-6">
-        <EnquiryMap />
+        <div className="mt-4 sm:mt-6">
+          <EnquiryMap />
+        </div>
       </div>
 
     </div>
   );
 };
+
+
 
 export default Home;
