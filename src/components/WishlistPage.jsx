@@ -25,11 +25,19 @@ export default function WishlistPage() {
     axios
       .get(`/api/wishlist/${userId}`)
       .then((res) => {
-        const wishlist = res.data?.wishlist || res.data || [];
+        const wishlist =
+          res.data?.wishlist ||
+          res.data?.data?.wishlist ||
+          res.data?.data ||
+          res.data?.wishlistItems ||
+          [];
+
         setItems(Array.isArray(wishlist) ? wishlist : []);
       })
-
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Wishlist fetch error:", err);
+        setItems([]);
+      });
   }, [userId]);
 
   const toggleSelect = (item) => {
