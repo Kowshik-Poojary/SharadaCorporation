@@ -5,6 +5,12 @@ import Product from "../models/Product.js";
 
 const router = express.Router();
 
+const normalizeCode = (code) =>
+  String(code || "")
+    .trim()
+    .toLowerCase();
+
+
 router.post("/add", async (req, res) => {
   const { userId, productId, variantCode } = req.body;
   if (!userId || !productId || !variantCode) {
@@ -28,22 +34,39 @@ router.get("/:userId", async (req, res) => {
       const product = await Product.findById(item.productId);
       if (!product) continue;
 
-      const variant = product.variants.find((v) =>
-        v.code === item.variantCode ||
-        v.data?.["Code #"] === item.variantCode ||
-        String(v._id).slice(-6) === item.variantCode
-      );
+      const wantedCode = normalizeCode(item.variantCode);
+
+      const variant = product.variants.find((v) => {
+        const variantCode =
+          v.code ||
+          v.data?.["Code #"] ||
+          "";
+
+        return normalizeCode(variantCode) === wantedCode;
+      });
 
       if (!variant) continue;
 
       formatted.push({
         productId: product._id,
         productName: product.name,
-        variantCode: item.variantCode,
+        variantCode:
+          variant.code ||
+          variant.data?.["Code #"] ||
+          item.variantCode,
         imageUrl: variant.imageUrl || variant.data?.imageUrl,
         variantDetails: variant.data,
       });
     }
+
+    // ✅ SORT BY VARIANT CODE
+    formatted.sort((a, b) =>
+      normalizeCode(a.variantCode).localeCompare(
+        normalizeCode(b.variantCode),
+        undefined,
+        { numeric: true }
+      )
+    );
 
     res.json(formatted);
   } catch (err) {
