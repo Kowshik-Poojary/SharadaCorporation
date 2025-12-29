@@ -5,6 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-[#2b0908] text-gray-200 py-10 mt-10">
       <div className="container mx-auto px-6 grid md:grid-cols-3 gap-8 items-center text-center md:text-left">
+        
         {/* Left - Brand Info */}
         <div>
           <h2 className="text-2xl font-semibold text-white mb-2">
@@ -60,13 +61,39 @@ const Footer = () => {
               </a>
             </li>
 
+            {/* Vision & Mission */}
+            <li className="flex items-center justify-center md:justify-start gap-2">
+              <FileText size={16} />
+              <a
+                href="/certificates/VisionMission.docx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-yellow-400 transition"
+              >
+                Vision & Mission Document
+              </a>
+            </li>
+
+            {/* Quality Policy */}
+            <li className="flex items-center justify-center md:justify-start gap-2">
+              <FileText size={16} />
+              <a
+                href="/certificates/QualityPolicy.docx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-yellow-400 transition"
+              >
+                Quality Policy
+              </a>
+            </li>
+
             <li className="flex items-center justify-center md:justify-start gap-2">
               <Award size={16} />
               <span>
                 Government Approved <b>One Star Export House</b>
               </span>
             </li>
-          </ul> 
+          </ul>
         </div>
 
         {/* Right - Contact */}
@@ -76,11 +103,17 @@ const Footer = () => {
           </h3>
 
           <p className="flex justify-center md:justify-start items-center gap-2">
-            <Mail size={16} /> businessdevelopment.sharda@gmail.com
+            <Mail size={16} />
+            businessdevelopment.sharda@gmail.com
           </p>
 
           <p className="flex justify-center md:justify-start items-center gap-2">
-            <Phone size={16} /><br/> +91-22 425238 <br /> +91-2249601858 <br /> +91-9619854522
+            <Phone size={16} />
+            <span>
+              +91-22 425238 <br />
+              +91-2249601858 <br />
+              +91-9619854522
+            </span>
           </p>
         </div>
       </div>
