@@ -14,12 +14,11 @@ export default function ProductDetailView() {
   const imgContainerRef = useRef(null);
   const imgRef = useRef(null);
 
-  // Get logged-in user
   const user =
     typeof window !== "undefined" && JSON.parse(localStorage.getItem("user"));
   const userId = user?._id;
 
-  // Fetch product details
+  /* ---------------- FETCH PRODUCT ---------------- */
   useEffect(() => {
     axios
       .get(`/api/products/${id}`)
@@ -30,7 +29,7 @@ export default function ProductDetailView() {
       .catch(console.error);
   }, [id]);
 
-  // Fetch wishlist
+  /* ---------------- FETCH WISHLIST ---------------- */
   useEffect(() => {
     if (!userId) return;
 
@@ -43,7 +42,7 @@ export default function ProductDetailView() {
       .catch(() => {});
   }, [userId]);
 
-  // Image zoom effect
+  /* ---------------- IMAGE ZOOM ---------------- */
   useEffect(() => {
     const container = imgContainerRef.current;
     const img = imgRef.current;
@@ -64,7 +63,7 @@ export default function ProductDetailView() {
 
   if (!product) return <h2 className="p-6">Loading...</h2>;
 
-  // Extract variant keys safely
+  /* ---------------- VARIANT KEYS ---------------- */
   const variantKeys = Array.from(
     new Set(
       product.variants
@@ -73,6 +72,7 @@ export default function ProductDetailView() {
     )
   );
 
+  /* ---------------- TOGGLE WISHLIST ---------------- */
   const toggleWishlist = async (variantCode) => {
     if (!userId) return alert("Please login to add items to your wishlist.");
     if (loadingWishlistAction) return;
@@ -113,24 +113,21 @@ export default function ProductDetailView() {
 
   return (
     <div className="p-4 md:p-8">
-
-      {/* ===== BREADCRUMB NAVIGATION ===== */}
+      {/* ===== BREADCRUMB ===== */}
       <div className="mb-4 text-sm text-gray-600">
         <Link to="/" className="hover:underline">Home</Link>
         <span className="mx-2">/</span>
-
         <Link
           to={`/products/catalogue/${product.category}`}
           className="hover:underline"
         >
           {product.category}
         </Link>
-
         <span className="mx-2">/</span>
         <span className="font-medium text-gray-800">{product.name}</span>
       </div>
 
-      {/* ===== BACK BUTTON ===== */}
+      {/* ===== BACK ===== */}
       <button
         onClick={() => navigate(`/products/catalogue/${product.category}`)}
         className="mb-6 text-blue-600 hover:underline"
@@ -139,7 +136,7 @@ export default function ProductDetailView() {
       </button>
 
       <div className="flex flex-col md:flex-row gap-10">
-        {/* LEFT PANEL – IMAGE */}
+        {/* LEFT IMAGE */}
         <div className="md:w-1/2 w-full space-y-6">
           <div
             ref={imgContainerRef}
@@ -164,7 +161,7 @@ export default function ProductDetailView() {
           </p>
         </div>
 
-        {/* RIGHT PANEL – DETAILS */}
+        {/* RIGHT DETAILS */}
         <div className="md:w-1/2 w-full">
           <h1 className="text-2xl md:text-3xl font-bold">{product.name}</h1>
           <p className="text-gray-500 mb-4">{product.category}</p>
@@ -173,12 +170,13 @@ export default function ProductDetailView() {
             Go to Wishlist
           </Link>
 
-          {/* VARIANTS TABLE */}
+          {/* ===== VARIANTS TABLE ===== */}
           <div className="overflow-x-auto bg-white rounded-lg shadow">
             <table className="min-w-full text-sm md:text-base border-collapse">
               <thead>
                 <tr className="bg-gray-200">
                   <th className="px-4 py-3 border font-semibold">Image</th>
+                  <th className="px-2 py-3 border" />
                   {variantKeys.map((key) => (
                     <th key={key} className="px-4 py-3 border font-semibold">
                       {key}
@@ -210,7 +208,8 @@ export default function ProductDetailView() {
                             : "bg-white"
                         } hover:bg-yellow-50`}
                     >
-                      <td className="px-3 py-2 border flex items-center gap-3">
+                      {/* IMAGE */}
+                      <td className="px-3 py-2 border text-center">
                         <img
                           src={
                             variant?.imageUrl ||
@@ -218,21 +217,25 @@ export default function ProductDetailView() {
                             "/placeholder.webp"
                           }
                           alt={code}
-                          className="h-12 w-12 object-cover rounded border"
+                          className="h-12 w-12 object-cover rounded border mx-auto"
                           onError={(e) => (e.target.src = "/placeholder.webp")}
                         />
+                      </td>
 
+                      {/* WISHLIST (NO HEADER) */}
+                      <td className="px-2 py-2 border text-center">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleWishlist(code);
                           }}
-                          className="text-xl"
+                          className="text-xl hover:scale-110 transition"
                         >
                           {isWishlisted ? "❤️" : "🤍"}
                         </button>
                       </td>
 
+                      {/* DATA */}
                       {variantKeys.map((key) => (
                         <td
                           key={key}

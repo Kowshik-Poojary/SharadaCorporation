@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "../utils/axiosInstance";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import CategorySliderSkeleton from "./skeletons/CategorySliderSkeleton";
 
 const CategorySlider = () => {
   const [categories, setCategories] = useState([]);
   const [current, setCurrent] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const touchStart = useRef(0);
@@ -26,6 +28,7 @@ const CategorySlider = () => {
 
   /* -------- LOAD CATEGORIES -------- */
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/api/admin/categories/all")
       .then((res) => {
@@ -51,8 +54,12 @@ const CategorySlider = () => {
 
         setCategories(ordered);
         setCurrent(0);
+        setLoading(false);
       })
-      .catch(() => setCategories([]));
+      .catch(() => {
+        setCategories([]);
+        setLoading(false);
+      });
   }, []);
 
   /* -------- AUTO SLIDE INIT -------- */
@@ -62,6 +69,11 @@ const CategorySlider = () => {
     startAutoSlide();
     return () => stopAutoSlide();
   }, [categories]);
+
+  /* -------- SHOW SKELETON WHILE LOADING -------- */
+  if (loading) {
+    return <CategorySliderSkeleton />;
+  }
 
   /* -------- SWIPE -------- */
   const handleTouchStart = (e) => {

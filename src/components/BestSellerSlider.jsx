@@ -1,34 +1,42 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import BestSellerSliderSkeleton from "./skeletons/BestSellerSliderSkeleton";
 
 export default function BestSellerSlider() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const trackRef = useRef(null);
   const positionRef = useRef(0);
 
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const paused = useRef(false);
+
   /* ---------------- FETCH DATA ---------------- */
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/api/admin/best-seller-variants")
       .then((res) => setItems(res.data))
-      .catch(() => setItems([]));
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  /* ---------------- SLOW INFINITE AUTO SLIDE ---------------- */
+  /* ---------------- AUTO SCROLL ---------------- */
   useEffect(() => {
     const track = trackRef.current;
     if (!track || items.length === 0) return;
 
-    let speed = 0.6; // 🔥 SLOW & VISIBLE (adjust 0.4 – 1)
-    let paused = false;
+    let speed = 0.6;
 
     const animate = () => {
-      if (!paused) {
+      if (!paused.current && !isDragging.current) {
         positionRef.current -= speed;
 
-        // reset seamlessly at half width
         if (Math.abs(positionRef.current) >= track.scrollWidth / 2) {
           positionRef.current = 0;
         }
@@ -40,23 +48,33 @@ export default function BestSellerSlider() {
     };
 
     animate();
-
-    /* Pause on hover / touch */
-    const pause = () => (paused = true);
-    const resume = () => (paused = false);
-
-    track.addEventListener("mouseenter", pause);
-    track.addEventListener("mouseleave", resume);
-    track.addEventListener("touchstart", pause);
-    track.addEventListener("touchend", resume);
-
-    return () => {
-      track.removeEventListener("mouseenter", pause);
-      track.removeEventListener("mouseleave", resume);
-      track.removeEventListener("touchstart", pause);
-      track.removeEventListener("touchend", resume);
-    };
   }, [items]);
+
+  /* ---------------- DRAG / SWIPE SUPPORT ---------------- */
+  const onDragStart = (e) => {
+    isDragging.current = true;
+    paused.current = true;
+    trackRef.current.style.cursor = "grabbing";
+    startX.current = e.pageX || e.touches[0].pageX;
+    scrollLeft.current = positionRef.current;
+  };
+
+  const onDragMove = (e) => {
+    if (!isDragging.current) return;
+    const x = e.pageX || e.touches[0].pageX;
+    const walk = x - startX.current;
+    positionRef.current = scrollLeft.current + walk;
+    trackRef.current.style.transform = `translateX(${positionRef.current}px)`;
+  };
+
+  const onDragEnd = () => {
+    isDragging.current = false;
+    paused.current = false;
+    trackRef.current.style.cursor = "grab";
+  };
+
+  /* -------- SHOW SKELETON -------- */
+  if (loading) return <BestSellerSliderSkeleton />;
 
   return (
     <div className="w-full px-4 sm:px-6 mt-12 flex flex-col items-center overflow-hidden">
@@ -65,15 +83,20 @@ export default function BestSellerSlider() {
       <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-900">
         ⭐ Best Sellers
       </h2>
-
       <div className="w-24 sm:w-32 h-1 bg-yellow-400 rounded-full mb-6"></div>
 
       {/* VIEWPORT */}
       <div className="w-full overflow-hidden">
-        {/* TRACK */}
         <div
           ref={trackRef}
-          className="flex gap-4 sm:gap-6 will-change-transform"
+          className="flex gap-4 sm:gap-6 will-change-transform cursor-grab select-none"
+          onMouseDown={onDragStart}
+          onMouseMove={onDragMove}
+          onMouseUp={onDragEnd}
+          onMouseLeave={onDragEnd}
+          onTouchStart={onDragStart}
+          onTouchMove={onDragMove}
+          onTouchEnd={onDragEnd}
         >
           {[...items, ...items].map((item, index) => (
             <div
@@ -90,7 +113,6 @@ export default function BestSellerSlider() {
                 hover:shadow-lg
               "
             >
-              {/* IMAGE – PURE WHITE */}
               <img
                 src={item.variant.imageUrl}
                 alt={item.productName}
