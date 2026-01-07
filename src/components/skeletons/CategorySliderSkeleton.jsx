@@ -3,7 +3,7 @@ import React from "react";
 const CategorySliderSkeleton = () => {
   return (
     <div className="w-full rounded-xl overflow-hidden animate-pulse">
-      <div className="w-full aspect-[16/9] sm:aspect-[4/3] bg-gray-200 rounded-xl"></div>
+      <div className="w-full aspect-[16/9] sm:aspect-[3/1] bg-gray-200 rounded-xl"></div>
 
       <div className="flex justify-center gap-2 mt-2">
         {[1, 2, 3, 4].map((i) => (
