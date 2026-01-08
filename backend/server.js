@@ -20,7 +20,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://shardacorporation.netlify.app",
-    "https://shardacorporation.com"
+    "https://shardacorporation.com",
+    "https://www.shardacorporation.com"
   ], // or your frontend URL for production
   credentials: true
 }));
