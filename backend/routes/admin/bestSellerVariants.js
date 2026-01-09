@@ -4,31 +4,39 @@ import Product from "../../models/Product.js";
 
 const router = express.Router();
 
-/* --------------------- GET BEST SELLER VARIANTS --------------------- */
+/* --------------------- GET BEST SELLER VARIANTS (OPTIMIZED) --------------------- */
 router.get("/", async (req, res) => {
   try {
     const list = await BestSellerVariant.find()
-      .populate("productId");
+      .lean() // Use lean() for faster query (read-only)
+      .populate("productId", "name category variants _id"); // Only fetch needed fields
 
-    // Attach specific variant inside product
-    const output = [];
+    // Batch process without N+1 queries
+    const output = list
+      .map((item) => {
+        const product = item.productId;
+        if (!product || !product.variants) return null;
 
-    for (const item of list) {
-      const product = await Product.findById(item.productId);
-      const variant = product.variants.id(item.variantId);
+        const variant = product.variants.find(
+          (v) => v._id.toString() === item.variantId.toString()
+        );
 
-      if (variant) {
-        output.push({
+        if (!variant) return null;
+
+        return {
           productId: product._id,
           productName: product.name,
           category: product.category,
           variant
-        });
-      }
-    }
+        };
+      })
+      .filter(Boolean); // Remove null entries
 
+    // Add caching header for 5 minutes
+    res.set("Cache-Control", "public, max-age=300");
     res.json(output);
   } catch (error) {
+    console.error("Best seller variants error:", error);
     res.status(500).json({ error: "Failed to load best seller variants" });
   }
 });

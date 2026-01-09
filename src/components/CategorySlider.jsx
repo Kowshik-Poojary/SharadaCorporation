@@ -29,6 +29,21 @@ const CategorySlider = () => {
   /* -------- LOAD CATEGORIES -------- */
   useEffect(() => {
     setLoading(true);
+    
+    // Check sessionStorage cache first
+    const cachedCategories = sessionStorage.getItem("categorySliderData");
+    if (cachedCategories) {
+      try {
+        const parsed = JSON.parse(cachedCategories);
+        setCategories(parsed);
+        setCurrent(0);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error("Cache parse error:", e);
+      }
+    }
+
     axios
       .get("/api/admin/categories/all")
       .then((res) => {
@@ -53,6 +68,8 @@ const CategorySlider = () => {
           : processed;
 
         setCategories(ordered);
+        // Cache the data
+        sessionStorage.setItem("categorySliderData", JSON.stringify(ordered));
         setCurrent(0);
         setLoading(false);
       })
@@ -128,6 +145,7 @@ const CategorySlider = () => {
               src={cat.imageUrl}
               alt={cat.name}
               onError={(e) => (e.target.src = "/placeholder.webp")}
+              loading="lazy"
               className="
                 w-full rounded-xl block
                 object-contain bg-white aspect-[16/9]

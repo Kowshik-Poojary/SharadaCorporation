@@ -16,12 +16,29 @@ export default function BestSellerSlider() {
   const scrollLeft = useRef(0);
   const paused = useRef(false);
 
-  /* ---------------- FETCH DATA ---------------- */
+  /* ---------------- FETCH DATA WITH CACHING ---------------- */
   useEffect(() => {
     setLoading(true);
+    
+    // Check if data exists in sessionStorage (lasts only for this session)
+    const cachedData = sessionStorage.getItem("bestSellerSliderData");
+    if (cachedData) {
+      try {
+        setItems(JSON.parse(cachedData));
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error("Cache parse error:", e);
+      }
+    }
+
     axios
       .get("/api/admin/best-seller-variants")
-      .then((res) => setItems(res.data))
+      .then((res) => {
+        setItems(res.data);
+        // Cache the data
+        sessionStorage.setItem("bestSellerSliderData", JSON.stringify(res.data));
+      })
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, []);
@@ -32,6 +49,7 @@ export default function BestSellerSlider() {
     if (!track || items.length === 0) return;
 
     let speed = 0.6;
+    let animationId;
 
     const animate = () => {
       if (!paused.current && !isDragging.current) {
@@ -44,10 +62,12 @@ export default function BestSellerSlider() {
         track.style.transform = `translateX(${positionRef.current}px)`;
       }
 
-      requestAnimationFrame(animate);
+      animationId = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationId = requestAnimationFrame(animate);
+    
+    return () => cancelAnimationFrame(animationId);
   }, [items]);
 
   /* ---------------- DRAG / SWIPE SUPPORT ---------------- */
@@ -75,6 +95,9 @@ export default function BestSellerSlider() {
 
   /* -------- SHOW SKELETON -------- */
   if (loading) return <BestSellerSliderSkeleton />;
+
+  // Don't render if no items
+  if (items.length === 0) return null;
 
   return (
     <div className="w-full px-4 sm:px-6 mt-12 flex flex-col items-center overflow-hidden">
@@ -116,6 +139,7 @@ export default function BestSellerSlider() {
               <img
                 src={item.variant.imageUrl}
                 alt={item.productName}
+                loading="lazy"
                 className="h-32 sm:h-36 lg:h-40 w-full object-contain bg-white rounded-xl"
               />
 
