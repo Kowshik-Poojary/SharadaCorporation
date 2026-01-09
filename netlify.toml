@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "https://shardacorporation.com/*"
+  to = "https://www.shardacorporation.com/:splat"
+  status = 301
+  force = true
