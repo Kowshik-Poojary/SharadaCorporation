@@ -131,19 +131,26 @@ const Gallery = () => {
               onClick={() => openImage(index, arr)}
             >
               {item.type === "image" ? (
-                <img
-                  src={item.src}
-                  alt={`Warehouse ${index + 1}`}
-                  className="w-full h-64 object-cover transition duration-300"
-                  loading="lazy"
-                />
-              ) : (
-                <video
-                  src={item.src}
-                  className="w-full h-64 object-cover rounded-xl"
-                  muted
-                />
-              )}
+  <img
+    src={item.src}
+    alt={`Warehouse ${index + 1}`}
+    className="w-full h-64 object-cover transition duration-300"
+    loading="lazy"
+  />
+) : (
+  <div className="relative">
+    {/* Badge */}
+    <span className="absolute top-3 left-3 z-10 bg-yellow-500 text-black text-xs font-semibold px-3 py-1 rounded-full shadow">
+      Company Video
+    </span>
+
+    <video
+      src={item.src}
+      className="w-full h-64 object-cover rounded-xl"
+      muted
+    />
+  </div>
+)}
             </motion.div>
           ))}
         </div>

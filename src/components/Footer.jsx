@@ -65,7 +65,7 @@ const Footer = () => {
             <li className="flex items-center justify-center md:justify-start gap-2">
               <FileText size={16} />
               <a
-                href="/certificates/VisionMission.docx"
+                href="/certificates/VisionMission.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-yellow-400 transition"
@@ -78,7 +78,7 @@ const Footer = () => {
             <li className="flex items-center justify-center md:justify-start gap-2">
               <FileText size={16} />
               <a
-                href="/certificates/QualityPolicy.docx"
+                href="/certificates/QualityPolicy.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-yellow-400 transition"
@@ -110,7 +110,7 @@ const Footer = () => {
           <p className="flex justify-center md:justify-start items-center gap-2">
             <Phone size={16} />
             <span>
-              +91-22 425238 <br />
+              +91-22425238 <br />
               +91-2249601858 <br />
               +91-9619854522
             </span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "../utils/axiosInstance";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,42 +11,52 @@ const CategorySlider = () => {
 
   const navigate = useNavigate();
   const touchStart = useRef(0);
-  const touchEnd = useRef(0);
   const autoSlideRef = useRef(null);
 
-  /* -------- START AUTO SLIDE -------- */
-  const startAutoSlide = () => {
-    clearInterval(autoSlideRef.current);
+  /* -------- AUTO SLIDE CONTROLS (STABLE) -------- */
+  const stopAutoSlide = useCallback(() => {
+    if (autoSlideRef.current) {
+      clearInterval(autoSlideRef.current);
+      autoSlideRef.current = null;
+    }
+  }, []);
+
+  const startAutoSlide = useCallback(() => {
+    stopAutoSlide();
+
+    if (categories.length <= 1) return;
+
     autoSlideRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % categories.length);
+      setCurrent((prev) =>
+        prev + 1 >= categories.length ? 0 : prev + 1
+      );
     }, 4500);
-  };
+  }, [categories.length, stopAutoSlide]);
 
-  const stopAutoSlide = () => {
-    clearInterval(autoSlideRef.current);
-  };
-
-  /* -------- LOAD CATEGORIES -------- */
+  /* -------- LOAD CATEGORIES (FAST PATH) -------- */
   useEffect(() => {
-    setLoading(true);
-    
-    // Check sessionStorage cache first
-    const cachedCategories = sessionStorage.getItem("categorySliderData");
-    if (cachedCategories) {
+    let mounted = true;
+
+    const cached = sessionStorage.getItem("categorySliderData");
+    if (cached) {
       try {
-        const parsed = JSON.parse(cachedCategories);
-        setCategories(parsed);
-        setCurrent(0);
-        setLoading(false);
+        const parsed = JSON.parse(cached);
+        if (mounted) {
+          setCategories(parsed);
+          setCurrent(0);
+          setLoading(false);
+        }
         return;
-      } catch (e) {
-        console.error("Cache parse error:", e);
+      } catch {
+        // fallback to API
       }
     }
 
     axios
       .get("/api/admin/categories/all")
       .then((res) => {
+        if (!mounted) return;
+
         const processed = res.data.map((c) => ({
           _id: c._id,
           name: c.name,
@@ -54,7 +64,6 @@ const CategorySlider = () => {
           link: `/products/catalogue/${encodeURIComponent(c.name)}`,
         }));
 
-        // ✅ FORCE "New Arrival" FIRST
         const newArrival = processed.find(
           (c) => c.name.toLowerCase() === "new arrival"
         );
@@ -67,57 +76,60 @@ const CategorySlider = () => {
           ? [newArrival, ...others]
           : processed;
 
+        sessionStorage.setItem(
+          "categorySliderData",
+          JSON.stringify(ordered)
+        );
+
         setCategories(ordered);
-        // Cache the data
-        sessionStorage.setItem("categorySliderData", JSON.stringify(ordered));
         setCurrent(0);
-        setLoading(false);
       })
-      .catch(() => {
-        setCategories([]);
-        setLoading(false);
-      });
+      .finally(() => mounted && setLoading(false));
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   /* -------- AUTO SLIDE INIT -------- */
   useEffect(() => {
-    if (categories.length <= 1) return;
-
     startAutoSlide();
-    return () => stopAutoSlide();
-  }, [categories]);
+    return stopAutoSlide;
+  }, [startAutoSlide, stopAutoSlide]);
 
-  /* -------- SHOW SKELETON WHILE LOADING -------- */
-  if (loading) {
-    return <CategorySliderSkeleton />;
-  }
+  /* -------- SHOW SKELETON -------- */
+  if (loading) return <CategorySliderSkeleton />;
 
-  /* -------- SWIPE -------- */
+  /* -------- TOUCH HANDLERS -------- */
   const handleTouchStart = (e) => {
-    stopAutoSlide(); // pause only during swipe
+    stopAutoSlide();
     touchStart.current = e.changedTouches[0].clientX;
   };
 
   const handleTouchEnd = (e) => {
-    touchEnd.current = e.changedTouches[0].clientX;
-    const distance = touchStart.current - touchEnd.current;
+    const touchEnd = e.changedTouches[0].clientX;
+    const distance = touchStart.current - touchEnd;
 
-    if (distance > 50)
-      setCurrent((prev) => (prev + 1) % categories.length);
+    if (distance > 50) {
+      setCurrent((prev) =>
+        prev + 1 >= categories.length ? 0 : prev + 1
+      );
+    }
 
-    if (distance < -50)
+    if (distance < -50) {
       setCurrent((prev) =>
         prev === 0 ? categories.length - 1 : prev - 1
       );
+    }
 
-    startAutoSlide(); // ✅ restart after swipe
+    startAutoSlide();
   };
 
   return (
     <div
       className="w-full overflow-hidden relative rounded-xl"
-      onMouseEnter={stopAutoSlide}   // desktop hover pause
-      onMouseLeave={startAutoSlide} // resume
+      onMouseEnter={stopAutoSlide}
+      onMouseLeave={startAutoSlide}
     >
       {/* SLIDES */}
       <div
@@ -140,12 +152,12 @@ const CategorySlider = () => {
               }
             `}
           >
-            {/* IMAGE */}
             <img
               src={cat.imageUrl}
               alt={cat.name}
-              onError={(e) => (e.target.src = "/placeholder.webp")}
               loading="lazy"
+              decoding="async"
+              onError={(e) => (e.target.src = "/placeholder.webp")}
               className="
                 w-full rounded-xl block
                 object-contain bg-white aspect-[16/9]
@@ -154,7 +166,6 @@ const CategorySlider = () => {
               "
             />
 
-            {/* OVERLAY */}
             <div
               className="
                 absolute bottom-0 w-full rounded-xl
@@ -163,7 +174,6 @@ const CategorySlider = () => {
               "
             />
 
-            {/* TITLE */}
             <div
               className="
                 absolute left-4 bottom-2 sm:bottom-3
@@ -197,7 +207,9 @@ const CategorySlider = () => {
 
           <button
             onClick={() =>
-              setCurrent((prev) => (prev + 1) % categories.length)
+              setCurrent((prev) =>
+                prev + 1 >= categories.length ? 0 : prev + 1
+              )
             }
             className="
               hidden md:flex absolute right-3 top-1/2 -translate-y-1/2

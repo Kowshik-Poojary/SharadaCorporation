@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import axios from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import BestSellerSliderSkeleton from "./skeletons/BestSellerSliderSkeleton";
@@ -15,62 +15,71 @@ export default function BestSellerSlider() {
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const paused = useRef(false);
+  const rafRef = useRef(null);
 
-  /* ---------------- FETCH DATA WITH CACHING ---------------- */
+  /* ---------------- FETCH DATA (SAFE + FAST) ---------------- */
   useEffect(() => {
-    setLoading(true);
-    
-    // Check if data exists in sessionStorage (lasts only for this session)
+    let mounted = true;
+
     const cachedData = sessionStorage.getItem("bestSellerSliderData");
     if (cachedData) {
       try {
-        setItems(JSON.parse(cachedData));
-        setLoading(false);
+        if (mounted) {
+          setItems(JSON.parse(cachedData));
+          setLoading(false);
+        }
         return;
-      } catch (e) {
-        console.error("Cache parse error:", e);
+      } catch {
+        // fallback to API
       }
     }
 
     axios
       .get("/api/admin/best-seller-variants")
       .then((res) => {
+        if (!mounted) return;
         setItems(res.data);
-        // Cache the data
-        sessionStorage.setItem("bestSellerSliderData", JSON.stringify(res.data));
+        sessionStorage.setItem(
+          "bestSellerSliderData",
+          JSON.stringify(res.data)
+        );
       })
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+      .catch(() => mounted && setItems([]))
+      .finally(() => mounted && setLoading(false));
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  /* ---------------- AUTO SCROLL ---------------- */
-  useEffect(() => {
+  /* ---------------- AUTO SCROLL (STABLE RAF) ---------------- */
+  const animate = useCallback(() => {
     const track = trackRef.current;
-    if (!track || items.length === 0) return;
+    if (!track || paused.current || isDragging.current) {
+      rafRef.current = requestAnimationFrame(animate);
+      return;
+    }
 
-    let speed = 0.6;
-    let animationId;
+    positionRef.current -= 0.6;
 
-    const animate = () => {
-      if (!paused.current && !isDragging.current) {
-        positionRef.current -= speed;
+    if (Math.abs(positionRef.current) >= track.scrollWidth / 2) {
+      positionRef.current = 0;
+    }
 
-        if (Math.abs(positionRef.current) >= track.scrollWidth / 2) {
-          positionRef.current = 0;
-        }
+    track.style.transform = `translateX(${positionRef.current}px)`;
+    rafRef.current = requestAnimationFrame(animate);
+  }, []);
 
-        track.style.transform = `translateX(${positionRef.current}px)`;
-      }
+  useEffect(() => {
+    if (!items.length) return;
 
-      animationId = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
+  }, [items, animate]);
 
-    animationId = requestAnimationFrame(animate);
-    
-    return () => cancelAnimationFrame(animationId);
-  }, [items]);
-
-  /* ---------------- DRAG / SWIPE SUPPORT ---------------- */
+  /* ---------------- DRAG / SWIPE ---------------- */
   const onDragStart = (e) => {
     isDragging.current = true;
     paused.current = true;
@@ -82,8 +91,7 @@ export default function BestSellerSlider() {
   const onDragMove = (e) => {
     if (!isDragging.current) return;
     const x = e.pageX || e.touches[0].pageX;
-    const walk = x - startX.current;
-    positionRef.current = scrollLeft.current + walk;
+    positionRef.current = scrollLeft.current + (x - startX.current);
     trackRef.current.style.transform = `translateX(${positionRef.current}px)`;
   };
 
@@ -93,11 +101,9 @@ export default function BestSellerSlider() {
     trackRef.current.style.cursor = "grab";
   };
 
-  /* -------- SHOW SKELETON -------- */
+  /* ---------------- RENDER ---------------- */
   if (loading) return <BestSellerSliderSkeleton />;
-
-  // Don't render if no items
-  if (items.length === 0) return null;
+  if (!items.length) return null;
 
   return (
     <div className="w-full px-4 sm:px-6 mt-12 flex flex-col items-center overflow-hidden">
@@ -124,7 +130,9 @@ export default function BestSellerSlider() {
           {[...items, ...items].map((item, index) => (
             <div
               key={`${item.variant._id}-${index}`}
-              onClick={() => navigate(`/products/details/${item.productId}`)}
+              onClick={() =>
+                navigate(`/products/details/${item.productId}`)
+              }
               className="
                 min-w-[180px] sm:min-w-[220px] lg:min-w-[240px]
                 bg-white
@@ -140,6 +148,7 @@ export default function BestSellerSlider() {
                 src={item.variant.imageUrl}
                 alt={item.productName}
                 loading="lazy"
+                decoding="async"
                 className="h-32 sm:h-36 lg:h-40 w-full object-contain bg-white rounded-xl"
               />
 

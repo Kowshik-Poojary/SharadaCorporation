@@ -1,22 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   AnimatePresence,
 } from "framer-motion";
-import { Globe, Award, Heart, BookOpen, Eye, Droplet } from "lucide-react";
+import {
+  Award,
+  Globe,
+  Eye,
+  ShieldCheck,
+  BookOpen,
+  Heart,
+  Droplet,
+  TrendingUp,
+  Sparkles,
+} from "lucide-react";
 import AboutBanner from "../assets/AboutBanner.png";
 
 const AboutUs = () => {
+  const cardRefs = useRef([]);
+  const timelineRef = useRef(null);
+  const [points, setPoints] = useState([]);
   const { scrollYProgress } = useScroll();
   const [showFullContent, setShowFullContent] = useState(false);
   const timelineItems = [
-    { year: " 1978", text: "Established as Merchant Exporters" },
-    { year: " 1990s", text: "International Exhibitions & Recognition" },
-    { year: " 2000s", text: "Awarded Export House Status" },
-    { year: " Today", text: "Trusted in USA, Europe & Far East" },
-  ];
+  {
+    year: "1978",
+    icon: Award,
+    text: "Established as Merchant Exporters with a commitment to responsible trade, product quality, and long-term business integrity.",
+  },
+  {
+    year: "1980s",
+    icon: Globe,
+    text: "Expanded international exports while building stable, transparent, and long-term customer relationships.",
+  },
+  {
+    year: "1990s",
+    icon: Eye,
+    text: "Engaged in global trade exhibitions, strengthening market credibility and international business standards.",
+  },
+  {
+    year: "2000s",
+    icon: ShieldCheck,
+    text: "Recognized with Export House Status and invested in manufacturing infrastructure to support consistent and responsible growth.",
+  },
+  {
+    year: "2010s",
+    icon: BookOpen,
+    text: "Implemented robust quality systems, standardized processes, and aligned operations with international social, ethical, and compliance frameworks.",
+  },
+  {
+    year: "2020",
+    icon: Heart,
+    text: "Maintained operational continuity and workforce stability during global disruptions through responsible management practices.",
+  },
+  {
+    year: "2023",
+    icon: Droplet,
+    text: "Advanced sustainability initiatives by diversifying into eco-friendly product categories including Rice Husk Tableware, Sugarcane Bagasse Tableware, and responsibly sourced Kitchen Aprons & Textiles.",
+  },
+  {
+    year: "2024",
+    icon: TrendingUp,
+    text: "Strengthened long-term partnerships with global buyers, supporting shared goals in quality, compliance, and sustainable sourcing.",
+  },
+  {
+    year: "Today",
+    icon: Sparkles,
+    text: "A responsible global manufacturing and export partner, committed to environmental stewardship, ethical operations, and continuous improvement.",
+  },
+];
 
   // Map scrollYProgress to opacity/translateX for each item
   const getOpacity = (index) =>
@@ -24,6 +78,48 @@ const AboutUs = () => {
 
   const getX = (index) =>
     useTransform(scrollYProgress, [0.1 * index, 0.1 * (index + 1)], [-50, 0]);
+
+  useEffect(() => {
+    const updatePoints = () => {
+      if (!timelineRef.current) return;
+
+      const containerRect = timelineRef.current.getBoundingClientRect();
+
+      const newPoints = cardRefs.current
+        .map((el) => {
+          if (!el) return null;
+          const rect = el.getBoundingClientRect();
+          return {
+            x: rect.left - containerRect.left + rect.width / 2,
+            y: rect.top - containerRect.top + rect.height / 2,
+          };
+        })
+        .filter(Boolean);
+
+      setPoints(newPoints);
+    };
+
+    updatePoints();
+    window.addEventListener("resize", updatePoints);
+    window.addEventListener("scroll", updatePoints);
+
+    return () => {
+      window.removeEventListener("resize", updatePoints);
+      window.removeEventListener("scroll", updatePoints);
+    };
+  }, []);
+
+  // Helper function for serpentine grid layout
+  const getGridOrder = (index) => {
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+
+    // Even rows → normal (1 2 3)
+    if (row % 2 === 0) return index;
+
+    // Odd rows → reversed (6 5 4)
+    return row * 3 + (2 - col);
+  };
 
   return (
     <div className="bg-gray-50 text-gray-800">
@@ -49,30 +145,72 @@ const AboutUs = () => {
           </span>
         </motion.div>
       </section>
+      {/* 2️⃣ Timeline Section – Interactive Icon Timeline */}
+<section className="py-28 bg-white">
+  <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-24 text-gray-800">
+    Our Journey
+  </h2>
 
-      {/* 2️⃣ Timeline Section */}
-      <section className="py-16 bg-white">
-        <h2 className="text-4xl font-bold text-center mb-12">Our Journey</h2>
-        <div className="max-w-4xl mx-auto">
-          <ul className="relative border-l border-gray-300">
-            {timelineItems.map((item, i) => {
-              const opacity = getOpacity(i);
-              const x = getX(i);
-              return (
-                <motion.li
-                  key={i}
-                  style={{ opacity, x }}
-                  className="mb-10 ml-6 relative"
-                >
-                  <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-full ring-8 ring-white"></span>
-                  <h3 className="font-bold text-xl p-4">{item.year}</h3>
-                  <p className="mt-2 text-gray-600">{item.text}</p>
-                </motion.li>
-              );
-            })}
-          </ul>
-        </div>
-      </section>
+  <div className="max-w-7xl mx-auto px-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-x-16 gap-y-28 relative">
+      {timelineItems.map((item, i) => {
+        const Icon = item.icon;
+        const row = Math.floor(i / 3);
+        const isEvenRow = row % 2 === 0;
+
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.6, delay: i * 0.08 }}
+            className="relative group"
+          >
+            {/* Connector (Desktop only) */}
+            {i < timelineItems.length - 1 && (
+              <motion.div
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className={`hidden md:block absolute top-10 ${
+                  isEvenRow ? "right-[-4rem]" : "left-[-4rem]"
+                } h-[2px] w-16 bg-yellow-500 origin-left`}
+              />
+            )}
+
+            {/* Card */}
+            <motion.div
+              whileHover={{ y: -10, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="relative bg-gray-50 p-8 rounded-2xl shadow-md hover:shadow-2xl"
+            >
+              {/* Year + Icon */}
+              <div className="absolute -top-14 left-6 flex items-center gap-3">
+                <div className="relative">
+                  <span className="absolute inset-0 rounded-full bg-yellow-400 opacity-40 animate-ping" />
+                  <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg">
+                    <Icon className="w-6 h-6 text-black" />
+                  </div>
+                </div>
+                <span className="bg-yellow-500 text-black px-4 py-1 rounded-full font-bold text-sm shadow">
+                  {item.year}
+                </span>
+              </div>
+
+              {/* Content */}
+              <p className="mt-10 text-gray-700 leading-relaxed text-base">
+                {item.text}
+              </p>
+            </motion.div>
+          </motion.div>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
 
       {/* 3️⃣ Who We Serve */}
       <section className="py-16 bg-gray-100">
@@ -102,47 +240,67 @@ const AboutUs = () => {
       </section>
 
       {/* 4️⃣ CSR Section */}
-      <section className="py-16 bg-white">
-        <h2 className="text-4xl font-bold text-center mb-12">
-          Circle of Life – CSR
+      <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+        <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-14 text-gray-800">
+          Circle of Life – <span className="text-yellow-500">CSR</span>
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto px-6">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 max-w-6xl mx-auto px-6">
           {[
             {
-              icon: <Eye className="w-10 h-10 text-yellow-500" />,
+              icon: <Eye className="w-12 h-12 text-yellow-500" />,
               text: "Free Eye Checkups & Surgeries",
             },
             {
-              icon: <Droplet className="w-10 h-10 text-red-500" />,
+              icon: <Droplet className="w-12 h-12 text-red-500" />,
               text: "Blood Donation Drives",
             },
             {
-              icon: <BookOpen className="w-10 h-10 text-blue-500" />,
+              icon: <BookOpen className="w-12 h-12 text-blue-500" />,
               text: "Sponsoring Education for 30+ Students",
             },
             {
-              icon: <Award className="w-10 h-10 text-green-500" />,
+              icon: <Award className="w-12 h-12 text-green-500" />,
               text: "Employee Scholarships",
             },
             {
-              icon: <Heart className="w-10 h-10 text-pink-500" />,
+              icon: <Heart className="w-12 h-12 text-pink-500" />,
               text: "Tribal Weddings & Community Support",
+            },
+            {
+              icon: <ShieldCheck className="w-12 h-12 text-purple-500" />,
+              text: "Covid Vaccination Drives",
             },
           ].map((csr, i) => (
             <motion.div
               key={i}
-              whileHover={{ scale: 1.05 }}
-              className="bg-gray-50 p-6 rounded-xl shadow text-center"
+              whileHover={{ y: -8, scale: 1.04 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="relative group bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 text-center overflow-hidden"
             >
-              <div className="flex justify-center mb-4">{csr.icon}</div>
-              <p>{csr.text}</p>
+              {/* Soft Glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              <div className="relative z-10 flex justify-center mb-5">
+                <motion.div
+                  whileHover={{ rotate: 6, scale: 1.1 }}
+                  className="p-4 rounded-full bg-gray-50 shadow-md"
+                >
+                  {csr.icon}
+                </motion.div>
+              </div>
+
+              <p className="relative z-10 text-gray-700 font-medium text-lg leading-relaxed">
+                {csr.text}
+              </p>
             </motion.div>
           ))}
         </div>
-        <div className="align-middle flex justify-center">
+
+        <div className="flex justify-center mt-14">
           <button
             onClick={() => setShowFullContent(true)}
-            className="mt-6 bg-yellow-500 text-black px-6 py-3 rounded-full font-semibold hover:scale-105 transition-transform"
+            className="bg-yellow-500 text-black px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
             Read More
           </button>

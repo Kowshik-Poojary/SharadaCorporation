@@ -28,7 +28,7 @@ const Contact = () => {
             Mumbai 400 004 (India)
           </p>
           <p className="text-gray-600 mt-2 text-sm">
-            <span className="font-semibold">Tel:</span> +91-22 425238 <br/>
+            <span className="font-semibold">Tel:</span> +91-22425238 <br/>
             +91-2249601858 <br/>
             +91-9619854522
           </p>
