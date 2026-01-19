@@ -43,6 +43,10 @@ app.use("/api/admin/categories", adminCategories);
 app.use("/api/admin/products", adminProducts);
 app.use("/api/admin/best-seller-variants", bestSellerVariantRoutes);
 
+app.get("/ping", (req, res) => {
+  res.status(200).send("OK");
+});
+
 
 app.listen(process.env.PORT, () =>
   console.log(`🚀 Server running on port ${process.env.PORT}`)
