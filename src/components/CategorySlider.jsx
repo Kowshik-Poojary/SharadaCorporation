@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 import CategorySliderSkeleton from "./skeletons/CategorySliderSkeleton";
 import { getImageUrl } from "../constants/categoryImages";
 
+const CACHE_KEY = "categorySliderData";
+const CACHE_TIME_KEY = "categorySliderTime";
+const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
+
 const CategorySlider = () => {
   const [categories, setCategories] = useState([]);
   const [current, setCurrent] = useState(0);
@@ -25,47 +29,66 @@ const CategorySlider = () => {
   const startAutoSlide = useCallback(() => {
     stopAutoSlide();
     if (categories.length <= 1) return;
-
     autoSlideRef.current = setInterval(() => {
       setCurrent((prev) => (prev + 1 >= categories.length ? 0 : prev + 1));
     }, 4500);
   }, [categories.length, stopAutoSlide]);
 
-  // ========== LOAD CATEGORIES WITH CACHING ==========
+  // ========== PRELOAD IMAGES INTO BROWSER DISK CACHE ==========
+  const preloadImages = useCallback((cats) => {
+    cats.forEach((cat, index) => {
+      const img = new Image();
+      // First image: load immediately, rest: idle time
+      if (index === 0) {
+        img.fetchPriority = "high";
+        img.src = cat.imageUrl;
+      } else {
+        // Defer non-critical images to idle time
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(() => { img.src = cat.imageUrl; });
+        } else {
+          setTimeout(() => { img.src = cat.imageUrl; }, 300 * index);
+        }
+      }
+    });
+  }, []);
+
+  // ========== LOAD CATEGORIES WITH 1-WEEK PERSISTENT CACHE ==========
   useEffect(() => {
     let mounted = true;
 
-    // Step 1: Check session cache (valid for 24 hours)
-    const cached = sessionStorage.getItem("categorySliderData");
-    const cacheTime = sessionStorage.getItem("categorySliderTime");
+    // Use localStorage so cache survives tab closes (fewer API hits on Netlify)
+    const cached = localStorage.getItem(CACHE_KEY);
+    const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
     const now = Date.now();
 
-    // Cache valid for 24 hours
-    if (cached && cacheTime && now - parseInt(cacheTime) < 24 * 60 * 60 * 1000) {
+    if (cached && cacheTime && now - parseInt(cacheTime) < ONE_WEEK) {
       try {
         const parsed = JSON.parse(cached);
         if (mounted) {
           setCategories(parsed);
           setCurrent(0);
           setLoading(false);
+          preloadImages(parsed);
         }
         return;
       } catch {
-        // Fallback to API
+        // Cache corrupted — fall through to API
+        localStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem(CACHE_TIME_KEY);
       }
     }
 
-    // Step 2: Fetch from API only if cache is invalid or missing
+    // Fetch from API only when cache is missing or expired
     axios
       .get("/api/admin/categories/all", {
         headers: {
-          "Cache-Control": "public, max-age=86400",
+          "Cache-Control": "public, max-age=604800", // 1 week
         },
       })
       .then((res) => {
         if (!mounted) return;
 
-        // Use local image mapping
         const processed = res.data.map((c) => ({
           _id: c._id,
           name: c.name,
@@ -82,12 +105,17 @@ const CategorySlider = () => {
         );
         const ordered = newArrival ? [newArrival, ...others] : processed;
 
-        // Cache both data and timestamp
-        sessionStorage.setItem("categorySliderData", JSON.stringify(ordered));
-        sessionStorage.setItem("categorySliderTime", now.toString());
+        // Persist to localStorage for 1 week
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(ordered));
+          localStorage.setItem(CACHE_TIME_KEY, now.toString());
+        } catch {
+          // localStorage full — skip caching silently
+        }
 
         setCategories(ordered);
         setCurrent(0);
+        preloadImages(ordered);
       })
       .catch((err) => {
         console.error("Failed to load categories:", err);
@@ -99,7 +127,7 @@ const CategorySlider = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [preloadImages]);
 
   // ========== AUTO SLIDE INIT ==========
   useEffect(() => {
@@ -149,22 +177,17 @@ const CategorySlider = () => {
             className={`
               min-w-full relative cursor-pointer
               transition-all duration-500
-              ${
-                index === current
-                  ? "opacity-100 scale-100"
-                  : "opacity-0 scale-[0.98]"
-              }
+              ${index === current ? "opacity-100 scale-100" : "opacity-0 scale-[0.98]"}
             `}
           >
-            {/* IMAGE WITH LOADING OPTIMIZATION */}
+            {/* IMAGE */}
             <img
               src={cat.imageUrl}
               alt={cat.name}
-              loading="lazy"
+              loading={index === 0 ? "eager" : "lazy"}
               decoding="async"
-              fetchPriority={index === current ? "high" : "low"}
+              fetchPriority={index === 0 ? "high" : "low"}
               onError={(e) => {
-                // Only set fallback if not already a fallback (prevent infinite loop)
                 if (!e.target.src.includes("placeholder")) {
                   e.target.src = "/placeholder.png";
                   console.warn(`Image failed to load: ${cat.imageUrl}, using placeholder`);
@@ -206,9 +229,7 @@ const CategorySlider = () => {
         <>
           <button
             onClick={() =>
-              setCurrent((prev) =>
-                prev === 0 ? categories.length - 1 : prev - 1
-              )
+              setCurrent((prev) => (prev === 0 ? categories.length - 1 : prev - 1))
             }
             aria-label="Previous category"
             className="
@@ -222,9 +243,7 @@ const CategorySlider = () => {
 
           <button
             onClick={() =>
-              setCurrent((prev) =>
-                prev + 1 >= categories.length ? 0 : prev + 1
-              )
+              setCurrent((prev) => (prev + 1 >= categories.length ? 0 : prev + 1))
             }
             aria-label="Next category"
             className="
