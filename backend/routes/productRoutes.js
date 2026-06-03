@@ -1,6 +1,6 @@
 import express from "express";
-import Product from "../models/Product.js";    // CORRECT
-import Category from "../models/Category.js";  // FIXED PATH
+import Product from "../models/Product.js"; // CORRECT
+import Category from "../models/Category.js"; // FIXED PATH
 
 const router = express.Router();
 
@@ -32,9 +32,9 @@ router.get("/all/list", async (req, res) => {
 
     const merged = Array.from(
       new Set([
-        ...productCats.map(c => c?.trim()),
-        ...manualCats.map(c => c.name.trim())
-      ])
+        ...productCats.map((c) => c?.trim()),
+        ...manualCats.map((c) => c.name.trim()),
+      ]),
     ).filter(Boolean);
 
     res.json(merged);
@@ -43,12 +43,34 @@ router.get("/all/list", async (req, res) => {
   }
 });
 
-
 // GET products in category
 router.get("/category/:categoryName", async (req, res) => {
   try {
-    const products = await Product.find({ category: req.params.categoryName });
-    res.json(products);
+    // const products = await Product.find({ category: req.params.categoryName });
+    // res.json(products);
+    const categoryName = req.params.categoryName;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const skip = (page - 1) * limit;
+
+    const filter = {
+      category: categoryName,
+    };
+
+    const [products, totalProducts] = await Promise.all([
+      Product.find(filter).skip(skip).limit(limit).lean(),
+
+      Product.countDocuments(filter),
+    ]);
+
+    res.json({
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
