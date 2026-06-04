@@ -1,18 +1,38 @@
 import React, { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+
+const fetchCategoriesList = async () => {
+  const response = await axios.get(`/api/products/all/list`);
+  return response.data;
+};
+
+const fetchPaginatedProducts = async (categoryName, page, limit) => {
+  const res = await axios.get(
+    `/api/products/category/${categoryName}?page=${page}&limit=${limit}`,
+  );
+  return res.data;
+};
 
 export default function ProductCatalogue() {
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
-
-  // Pagination States
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const limit = 20; // Match the backend limit
-
   const { categoryName = "New Arrival" } = useParams();
   const navigate = useNavigate();
+  const limit = 20;
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = parseInt(searchParams.get("page")) || 1;
+
+  const handlePageChange = (newPageNumber) => {
+    searchParams.set("page", newPageNumber);
+    setSearchParams(searchParams);
+  };
 
   // Helper function to force Cloudinary to compress and resize images dynamically
   const optimizeCloudinaryUrl = (url) => {
@@ -26,28 +46,56 @@ export default function ProductCatalogue() {
     );
   };
 
-  useEffect(() => {
-    axios
-      .get("/api/products/all/list")
-      .then((res) => setCategories(res.data))
-      .catch(() => setCategories([]));
-  }, []);
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: fetchCategoriesList,
+    placeholderData: [],
+  });
 
-  // Reset page to 1 whenever user switches categories
-  useEffect(() => {
-    setPage(1);
-  }, [categoryName]);
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["products", categoryName, page],
+    queryFn: () => fetchPaginatedProducts(categoryName, page, limit),
+    placeholderData: keepPreviousData,
+  });
 
-  // Fetch products based on categoryName AND current page
-  useEffect(() => {
-    axios
-      .get(`/api/products/category/${categoryName}?page=${page}&limit=${limit}`)
-      .then((res) => {
-        setProducts(res.data.products);
-        setTotalPages(res.data.totalPages);
-      })
-      .catch(console.error);
-  }, [categoryName, page]);
+  const products = data?.products || [];
+  const totalPages = data?.totalPages || [];
+
+  if (isLoading)
+    return (
+      <div className="text-center p-10 font-semibold text-gray-600">
+        Loading catalog items...
+      </div>
+    );
+  if (isError)
+    return (
+      <div className="text-center p-10 text-red-500 font-semibold">
+        Error rendering catalog data.
+      </div>
+    );
+
+  // useEffect(() => {
+  //   axios
+  //     .get("/api/products/all/list")
+  //     .then((res) => setCategories(res.data))
+  //     .catch(() => setCategories([]));
+  // }, []);
+
+  // // Reset page to 1 whenever user switches categories
+  // useEffect(() => {
+  //   setPage(1);
+  // }, [categoryName]);
+
+  // // Fetch products based on categoryName AND current page
+  // useEffect(() => {
+  //   axios
+  //     .get(`/api/products/category/${categoryName}?page=${page}&limit=${limit}`)
+  //     .then((res) => {
+  //       setProducts(res.data.products);
+  //       setTotalPages(res.data.totalPages);
+  //     })
+  //     .catch(console.error);
+  // }, [categoryName, page]);
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -124,7 +172,7 @@ export default function ProductCatalogue() {
           <div className="flex justify-center items-center space-x-4 mt-12 py-4 border-t">
             <button
               disabled={page === 1}
-              onClick={() => setPage((prev) => prev - 1)}
+              onClick={() => handlePageChange(page - 1)}
               className="px-4 py-2 border rounded shadow disabled:opacity-40 disabled:cursor-not-allowed bg-white hover:bg-gray-50"
             >
               Previous
@@ -134,7 +182,7 @@ export default function ProductCatalogue() {
             </span>
             <button
               disabled={page === totalPages}
-              onClick={() => setPage((prev) => prev - 1 + 2)}
+              onClick={() => handlePageChange(page + 1)}
               className="px-4 py-2 border rounded shadow disabled:opacity-40 disabled:cursor-not-allowed bg-white hover:bg-gray-50"
             >
               Next

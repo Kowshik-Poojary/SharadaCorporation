@@ -94,7 +94,6 @@ function App() {
             {/* Wishlist */}
             <Route path="/wishlist" element={<WishlistPage />} />
 
-
             {/* -------------- ADMIN ROUTES -------------- */}
 
             <Route
@@ -182,7 +181,6 @@ function App() {
                 </AdminRoute>
               }
             />
-
           </Routes>
         </div>
 
