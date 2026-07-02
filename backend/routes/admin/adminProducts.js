@@ -9,137 +9,127 @@ const router = express.Router();
   POST: create product with variants
   Mount path (server): /api/admin/products/add-with-variants
 ---------------------------- */
-router.post(
-  "/add-with-variants",
-  upload.any(),
-  async (req, res) => {
-    try {
-      console.log("REQ BODY RAW:", req.body);
+router.post("/add-with-variants", upload.any(), async (req, res) => {
+  try {
+    console.log("REQ BODY RAW:", req.body);
 
-      const { name, category } = req.body;
-      const variants = {};
+    const { name, category } = req.body;
+    const variants = {};
 
-      // Parse dot notation keys
-      for (const key in req.body) {
-        let m;
+    // Parse dot notation keys
+    for (const key in req.body) {
+      let m;
 
-        // variants.0.data.Size
-        m = key.match(/^variants\.(\d+)\.data\.(.+)$/);
-        if (m) {
-          const index = m[1];
-          const dataKey = m[2];
-
-          if (!variants[index]) variants[index] = { data: {} };
-          variants[index].data[dataKey] = req.body[key];
-          continue;
-        }
-
-        // variants.0.code
-        m = key.match(/^variants\.(\d+)\.code$/);
-        if (m) {
-          const index = m[1];
-          if (!variants[index]) variants[index] = { data: {} };
-          variants[index].code = req.body[key];
-        }
-      }
-
-      // Parse files
-      for (const file of req.files) {
-        const match = file.fieldname.match(/^variants\.(\d+)\.image$/);
-        if (!match) continue;
-
-        const index = match[1];
-        const uploadRes = await uploadToCloudinary(file.path);
+      // variants.0.data.Size
+      m = key.match(/^variants\.(\d+)\.data\.(.+)$/);
+      if (m) {
+        const index = m[1];
+        const dataKey = m[2];
 
         if (!variants[index]) variants[index] = { data: {} };
-        variants[index].imageUrl = uploadRes.secure_url;
+        variants[index].data[dataKey] = req.body[key];
+        continue;
       }
 
-      const variantArray = Object.values(variants);
-
-      const product = await Product.create({
-        name,
-        category,
-        variants: variantArray,
-        representativeVariant: null,
-      });
-
-      return res.json({ success: true, product });
-
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Failed to create product" });
+      // variants.0.code
+      m = key.match(/^variants\.(\d+)\.code$/);
+      if (m) {
+        const index = m[1];
+        if (!variants[index]) variants[index] = { data: {} };
+        variants[index].code = req.body[key];
+      }
     }
+
+    // Parse files
+    for (const file of req.files) {
+      const match = file.fieldname.match(/^variants\.(\d+)\.image$/);
+      if (!match) continue;
+
+      const index = match[1];
+      const uploadRes = await uploadToCloudinary(file.path);
+
+      if (!variants[index]) variants[index] = { data: {} };
+      variants[index].imageUrl = uploadRes.secure_url;
+    }
+
+    const variantArray = Object.values(variants);
+
+    const product = await Product.create({
+      name,
+      category,
+      variants: variantArray,
+      representativeVariant: null,
+    });
+
+    return res.json({ success: true, product });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to create product" });
   }
-);
+});
 
 /* ---------------------------
   POST: add variants to an existing product
   Mount path: /api/admin/products/add-variants
 ---------------------------- */
-router.post(
-  "/add-variants",
-  upload.any(),
-  async (req, res) => {
-    try {
-      console.log("VARIANT BODY:", req.body);
+router.post("/add-variants", upload.any(), async (req, res) => {
+  try {
+    console.log("VARIANT BODY:", req.body);
 
-      const { productId } = req.body;
-      const variants = {};
+    const { productId } = req.body;
+    const variants = {};
 
-      // Parse variant data
-      for (const key in req.body) {
-        let m;
+    // Parse variant data
+    for (const key in req.body) {
+      let m;
 
-        // variants.0.data.Size
-        m = key.match(/^variants\.(\d+)\.data\.(.+)$/);
-        if (m) {
-          const index = m[1];
-          const dataKey = m[2];
-
-          if (!variants[index]) variants[index] = { data: {} };
-          variants[index].data[dataKey] = req.body[key];
-          continue;
-        }
-
-        // variants.0.code
-        m = key.match(/^variants\.(\d+)\.code$/);
-        if (m) {
-          const index = m[1];
-          if (!variants[index]) variants[index] = { data: {} };
-          variants[index].code = req.body[key];
-        }
-      }
-
-      // Parse images
-      for (const file of req.files) {
-        const match = file.fieldname.match(/^variants\.(\d+)\.image$/);
-        if (!match) continue;
-
-        const index = match[1];
-        const uploadRes = await uploadToCloudinary(file.path);
+      // variants.0.data.Size
+      m = key.match(/^variants\.(\d+)\.data\.(.+)$/);
+      if (m) {
+        const index = m[1];
+        const dataKey = m[2];
 
         if (!variants[index]) variants[index] = { data: {} };
-        variants[index].imageUrl = uploadRes.secure_url;
+        variants[index].data[dataKey] = req.body[key];
+        continue;
       }
 
-      const variantArray = Object.values(variants);
-
-      // PUSH VARIANTS INTO EXISTING PRODUCT
-      const updatedProduct = await Product.findByIdAndUpdate(
-        productId,
-        { $push: { variants: { $each: variantArray } } },
-        { new: true }
-      );
-
-      return res.json({ success: true, product: updatedProduct });
-
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Failed to add variants" });
+      // variants.0.code
+      m = key.match(/^variants\.(\d+)\.code$/);
+      if (m) {
+        const index = m[1];
+        if (!variants[index]) variants[index] = { data: {} };
+        variants[index].code = req.body[key];
+      }
     }
+
+    // Parse images
+    for (const file of req.files) {
+      const match = file.fieldname.match(/^variants\.(\d+)\.image$/);
+      if (!match) continue;
+
+      const index = match[1];
+      const uploadRes = await uploadToCloudinary(file.path);
+
+      if (!variants[index]) variants[index] = { data: {} };
+      variants[index].imageUrl = uploadRes.secure_url;
+    }
+
+    const variantArray = Object.values(variants);
+
+    // PUSH VARIANTS INTO EXISTING PRODUCT
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $push: { variants: { $each: variantArray } } },
+      { new: true },
+    );
+
+    return res.json({ success: true, product: updatedProduct });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add variants" });
   }
-);
+});
 
 /* ---------------------------
   GET: list all products (admin)
@@ -147,8 +137,21 @@ router.post(
 ---------------------------- */
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.json(products);
+    // const products = await Product.find({});
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [products, totalProducts] = await Promise.all([
+      Product.find({}).skip(skip).limit(limit).sort({ createdAt: -1 }).lean(),
+      Product.countDocuments({}),
+    ]);
+    res.json({
+      products,
+      currentPage: page,
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to load products" });
@@ -165,7 +168,7 @@ router.get("/category/:categoryName", async (req, res) => {
     const { categoryName } = req.params;
 
     const products = await Product.find({
-      category: { $regex: new RegExp(`^${categoryName.trim()}$`, "i") }
+      category: { $regex: new RegExp(`^${categoryName.trim()}$`, "i") },
     });
 
     res.json(products);
@@ -199,7 +202,7 @@ router.put("/:id", async (req, res) => {
         category: req.body.category,
         description: req.body.description,
       },
-      { new: true }
+      { new: true },
     );
 
     res.json(updated);
@@ -231,7 +234,7 @@ router.put("/:pid/variants/:vid", async (req, res) => {
           // Optionally allow updating data fields later
         },
       },
-      { new: true }
+      { new: true },
     );
 
     res.json(updated);
@@ -248,7 +251,7 @@ router.delete("/:pid/variants/:vid", async (req, res) => {
     const updated = await Product.findByIdAndUpdate(
       pid,
       { $pull: { variants: { _id: vid } } },
-      { new: true }
+      { new: true },
     );
 
     res.json(updated);
@@ -257,8 +260,6 @@ router.delete("/:pid/variants/:vid", async (req, res) => {
     res.status(500).json({ error: "Failed to delete variant" });
   }
 });
-
-
 
 /* ------------------ UPLOAD IMAGE FOR A VARIANT ------------------ */
 router.post(
@@ -274,8 +275,7 @@ router.post(
       if (!product) return res.status(404).json({ error: "Product not found" });
 
       const variant = product.variants.id(variantId);
-      if (!variant)
-        return res.status(404).json({ error: "Variant not found" });
+      if (!variant) return res.status(404).json({ error: "Variant not found" });
 
       // Upload to Cloudinary inside category folder
       const folderName = product.category.replace(/\s+/g, "_");
@@ -295,8 +295,7 @@ router.post(
       console.error("Variant Upload Error:", err);
       res.status(500).json({ error: "Upload failed" });
     }
-  }
+  },
 );
-
 
 export default router;

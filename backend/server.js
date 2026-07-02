@@ -12,24 +12,24 @@ import adminCategories from "./routes/admin/adminCategories.js";
 import adminProducts from "./routes/admin/adminProducts.js";
 import bestSellerVariantRoutes from "./routes/admin/bestSellerVariants.js";
 
-
-
 const app = express();
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://shardacorporation.netlify.app",
-    "https://shardacorporation.com",
-    "https://www.shardacorporation.com"
-  ], // or your frontend URL for production
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://shardacorporation.netlify.app",
+      "https://shardacorporation.com",
+      "https://www.shardacorporation.com",
+    ], // or your frontend URL for production
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error(err));
 
@@ -47,12 +47,12 @@ app.get("/ping", (req, res) => {
   res.status(200).send("OK");
 });
 
-
 app.listen(process.env.PORT, () =>
-  console.log(`🚀 Server running on port ${process.env.PORT}`)
+  console.log(`🚀 Server running on port ${process.env.PORT}`),
 );
 
-console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "Loaded ✅" : "Missing ❌");
+console.log(
+  "GOOGLE_CLIENT_ID:",
+  process.env.GOOGLE_CLIENT_ID ? "Loaded ✅" : "Missing ❌",
+);
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "Loaded ✅" : "Missing ❌");
-
-
