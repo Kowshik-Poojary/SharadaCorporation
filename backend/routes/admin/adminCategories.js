@@ -79,7 +79,7 @@ router.post("/", upload.single("image"), async (req, res) => {
     let uploadedUrl = "";
 
     if (req.file) {
-      const uploaded = await uploadToCloudinary(req.file.path, {
+      const uploaded = await uploadToCloudinary(req.file, {
         folder: "Categories",
       });
       uploadedUrl = uploaded.secure_url;
@@ -167,7 +167,7 @@ router.post("/:id/image", upload.single("image"), async (req, res) => {
     if (!cat)
       return res.status(404).json({ error: "Category not found" });
 
-    const uploaded = await uploadToCloudinary(req.file.path, {
+    const uploaded = await uploadToCloudinary(req.file, {
       folder: "Categories",
     });
 
