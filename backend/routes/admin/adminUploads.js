@@ -27,7 +27,7 @@ router.post("/:productId", upload.array("images", 10), async (req, res) => {
     const imageUrls = [];
 
     for (const file of req.files) {
-      const uploaded = await uploadToCloudinary(file.path, {
+      const uploaded = await uploadToCloudinary(file, {
         folder: `Products/${categoryFolder}`,   // ⭐ Category folder here
       });
 
@@ -80,7 +80,7 @@ router.post(
     try {
       if (!req.file) return res.status(400).json({ error: "No file" });
 
-      const uploaded = await uploadToCloudinary(req.file.path, {
+      const uploaded = await uploadToCloudinary(req.file, {
         folder: "Categories",
       });
 

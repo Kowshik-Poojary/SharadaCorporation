@@ -46,7 +46,7 @@ router.post("/add-with-variants", upload.any(), async (req, res) => {
       if (!match) continue;
 
       const index = match[1];
-      const uploadRes = await uploadToCloudinary(file.path);
+      const uploadRes = await uploadToCloudinary(file);
 
       if (!variants[index]) variants[index] = { data: {} };
       variants[index].imageUrl = uploadRes.secure_url;
@@ -109,7 +109,7 @@ router.post("/add-variants", upload.any(), async (req, res) => {
       if (!match) continue;
 
       const index = match[1];
-      const uploadRes = await uploadToCloudinary(file.path);
+      const uploadRes = await uploadToCloudinary(file);
 
       if (!variants[index]) variants[index] = { data: {} };
       variants[index].imageUrl = uploadRes.secure_url;
@@ -280,7 +280,7 @@ router.post(
       // Upload to Cloudinary inside category folder
       const folderName = product.category.replace(/\s+/g, "_");
 
-      const uploaded = await uploadToCloudinary(req.file.path, {
+      const uploaded = await uploadToCloudinary(req.file, {
         folder: `Products/${folderName}/Variants`,
       });
 
